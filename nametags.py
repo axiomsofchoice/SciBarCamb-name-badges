@@ -1,13 +1,18 @@
 import csv
 import itertools
-#import moire
 import urllib
 import urllib2
 import re, sys
 import vobject
 import StringIO
 import Image
-#import  #PDF writer
+from reportlab.pdfgen import canvas
+from reportlab.lib.utils import ImageReader
+#import moire
+
+# Uses the following libraries
+# http://vobject.skyhouseconsulting.com/
+# http://www.reportlab.com/apis/reportlab/dev/
 
 # Reads a CSV list of attendee, as provided by Eventbrite and 
 
@@ -77,6 +82,12 @@ for a in itertools.islice(attendeeReader,5):
     
     myImg.save("%s-%s.PNG" % (a["First Name"], a["Last Name"]))
     
+    im = ImageReader("%s-%s.PNG" % (a["First Name"], a["Last Name"]))
+    
+    c = canvas.Canvas("%s-%s.pdf" % (a["First Name"], a["Last Name"]))
+    c.drawImage(im, 100, 100)
+    c.showPage()
+    c.save()
 
 
 # The SciBarCamb logo
