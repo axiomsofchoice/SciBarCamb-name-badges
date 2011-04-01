@@ -32,14 +32,7 @@ QRcodes = []
 
 # For testing just grab the first 5 attendees
 for a in itertools.islice(attendeeReader,5):
-    #print a["First Name"]
-    #print a["Last Name"]
-    #print a["Website"]
-    #print a["Blog"]
-    #print a["Job Title"]
-    #print a["Company"]
-    # TODO: tidy up twitter handle to ensure it always has an @ prefix
-    print a["Twitter handle"]
+    print "Processing: %s %s" % (a["First Name"], a["Last Name"])
     
     # Create a new vCard based on these values
     j = vobject.vCard()
@@ -55,6 +48,11 @@ for a in itertools.islice(attendeeReader,5):
     j.email.value = a["Company"]
     j.add('url')
     j.email.value = a["Website"]
+    j.add('x-kaddressbook-blogfeed')
+    j.email.value = a["Blog"]
+    # TODO: tidy up twitter handle to ensure it always has an @ prefix
+    j.add('x-twitter')
+    j.email.value = a["Twitter handle"]
     j.email.type_param = 'INTERNET'
     
     # Request a QRcode from the Google Charts API using the vCard data (Assume an encoding of UTF-8)
