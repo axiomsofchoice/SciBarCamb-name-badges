@@ -83,12 +83,31 @@ for a in itertools.islice(attendeeReader,5):
     myImg.save("%s-%s.PNG" % (a["First Name"], a["Last Name"]))
     
     im = ImageReader("%s-%s.PNG" % (a["First Name"], a["Last Name"]))
+    SciBarCamb_logo = ImageReader("SciBar_No shadow.jpg")
+    aniIm = ImageReader("moire-1.PNG")
     
     c = canvas.Canvas("%s-%s.pdf" % (a["First Name"], a["Last Name"]))
+    
+    # The QRcode
     c.drawImage(im, 100, 100)
+    # The SciBarCamb logo
+    c.drawImage(SciBarCamb_logo, 100, 500)
+    # Affiliation details
+    c.drawCentredString(150, 250, '%s %s' % (a["First Name"], a["Last Name"]))
+    c.drawCentredString(150, 225, a["Job Title"])
+    c.drawCentredString(150, 200, a["Company"])
+    c.drawCentredString(150, 175, a["Twitter handle"])
+    # The animated image
+    c.drawImage(aniIm, 100, 300)
+    # A credit for the animated gif
+    #c.drawCentredString(150, 200, "Source: http://bit.ly/foo")
+    # A tick box for the barstaff to tick after providing a free drink ;) 
+    c.rect(250, 225, 25, 25, stroke=1, fill=0)
+    # A surround box to help with cutting it out
+    #c.rect(200, 225, 25, 25, stroke=1, fill=0)
+    
+    
     c.showPage()
     c.save()
 
 
-# The SciBarCamb logo
-#SciBarCamb_logo = "SciBar_No shadow.jpg"
