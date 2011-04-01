@@ -1,0 +1,69 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" 
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="1000px" height="1000px" viewBox="0 0 1000 1000" version="1.1"
+     xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+     onload="setupPage();">
+     <!-- Based on http://www.youtube.com/watch?v=SvNjsOl1Ag0 -->
+  <desc>Using a mask and animation to demonstrate Moire patterns</desc>
+    <script type="application/ecmascript"> <![CDATA[
+    
+    // These variable have global scope since it's tricky to
+    // put them into the recursive function call expression to setTimeout()
+    var screenPattern;
+    var internalRect;
+    var shiftAmount = 96;
+    var animationIncrement = 100;
+    
+    // Recursively call this function to perform the animation
+    function animateShift() {
+        
+        var x = parseInt(screenPattern.getAttribute("x"));        
+        screenPattern.setAttribute("x", x+1);        
+        
+        if(shiftAmount>=1) {
+            shiftAmount = shiftAmount - 1 ;
+            setTimeout ( "animateShift()", animationIncrement );
+        }
+    }
+    
+    function setupPage() {
+        
+        screenPattern = document.getElementById("screenPattern");
+        
+        animateShift();
+        
+    }
+      ]]> </script>
+  <defs>
+    <!-- Screen pattern of vertical bars of widths black:white :: 6:1 -->
+    <pattern id="screenPattern" x="0" y="0" width="7" height="1"
+            patternUnits="userSpaceOnUse">
+       <rect x="0" y="0" width="6" height="1" fill="black" />
+    </pattern>
+    
+    <!-- An inverse of the screen pattern to be applied to various frame of the animation -->
+    <pattern id="inverseScreenPattern" x="0" y="0" width="7" height="1"
+            patternUnits="userSpaceOnUse">
+       <rect x="6" y="0" width="1" height="1" fill="white" opacity="1"  />
+    </pattern>
+    <mask id="screenMask" maskUnits="userSpaceOnUse"
+          x="0" y="0" width="800" height="300">
+          <rect x="0" y="0" width="800" height="300" fill="url(#inverseScreenPattern)" />
+    </mask>
+    
+    <!-- The "base" circle upon which each frame of the animation will modify -->
+    <circle id="myCircle" cx="40" cy="40" r="30" fill="black" />
+  </defs>
+  
+  <!-- Draw the various frames and apply the screen over the top. -->
+  <use xlink:href="#myCircle" transform="translate(20,20)" mask="url(#screenMask)" /> 
+  <use xlink:href="#myCircle" transform="translate(40,40)" mask="url(#screenMask)" />
+  <use xlink:href="#myCircle" transform="translate(60,60)" mask="url(#screenMask)" />
+  <use xlink:href="#myCircle" transform="translate(80,80)" mask="url(#screenMask)" />
+  <use xlink:href="#myCircle" transform="translate(100,100)" mask="url(#screenMask)" />
+  <use xlink:href="#myCircle" transform="translate(120,120)" mask="url(#screenMask)" />  
+  
+  <rect id="myRect" x="0" y="0" width="800" height="300" fill="url(#screenPattern)" />
+
+</svg>
