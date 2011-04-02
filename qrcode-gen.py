@@ -24,7 +24,7 @@ import csv
 import itertools
 import urllib
 import urllib2
-import re, sys, getopt, os
+import re, sys, getopt, os, re
 import vobject
 import StringIO
 import Image
@@ -43,18 +43,23 @@ def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
     j.fn.value ='%s %s' % (a["First Name"], a["Last Name"])
     j.add('email')
     j.email.value = a["Email"]
-    j.add('title')
-    j.email.value = a["Job Title"]
-    j.add('org')
-    j.email.value = a["Company"]
-    j.add('url')
-    j.email.value = a["Website"]
-    j.add('x-kaddressbook-blogfeed')
-    j.email.value = a["Blog"]
-    # TODO: tidy up twitter handle to ensure it always has an @ prefix
-    j.add('x-twitter')
-    j.email.value = a["Twitter handle"]
     j.email.type_param = 'INTERNET'
+    j.add('title')
+    j.title.value = a["Job Title"]
+    j.add('org')
+    j.org.value = a["Company"]
+    j.add('url')
+    j.url.value = a["Website"]
+    j.add('x-kaddressbook-blogfeed')
+    j['x-kaddressbook-blogfeed'].value = a["Blog"]
+    # Tidy up twitter handle to ensure it always has an @ prefix
+    j.add('x-twitter')
+    teststr = a["Twitter handle"]
+    myreg = re.compile( "^@.*" )
+    if myreg.match(teststr) is None:
+        j['x-twitter'].value = "@%s" % teststr
+    else:
+        j['x-twitter'].value = teststr
     
     # Request a QRcode from the Google Charts API using the vCard data (Assume an encoding of UTF-8)
     url = "https://chart.googleapis.com/chart"
