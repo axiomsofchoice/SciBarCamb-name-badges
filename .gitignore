@@ -1,9 +1,7 @@
-*.gif
-*.png
-*.PNG
 *.*~
-*.csv
-*.pdf
 Thumbs.db
-*.jpg
 qrcodes
+logos
+attendees
+animations
+flyers
