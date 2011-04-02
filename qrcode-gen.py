@@ -7,19 +7,30 @@ Reads a CSV list of attendees, as provided by Eventbrite and generates QRcodes
 
 Uses the following library:
 http://vobject.skyhouseconsulting.com/
+
+Takes arguments:
+
+    height, width  - the height and width of the QRcode image
+    attendees      - the csv file from Eventbrite containing the list of
+                     attendees
+    output         - the directory into which the QRcode PNG image will go
+    takenum        - the number of attendees to grab from the list (for testing)
+    
+The PNG image files will be given names according to the "Attendee #" field.
+The images default to a size of 500x500 pixels.
 """
 
 import csv
 import itertools
 import urllib
 import urllib2
-import re, sys
+import re, sys, getopt, os
 import vobject
 import StringIO
 import Image
 
 
-def gen_qrcode():
+def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
     """
     """
     print "Processing: %s %s" % (a["First Name"], a["Last Name"])
@@ -65,21 +76,61 @@ def gen_qrcode():
     # Read the file returned and parse as an image
     myImg = Image.open(f2)
     
-    myImg.save("%s.PNG" % (a["Attendee #"]))
+    myImg.save("%s.PNG" % (os.path.join(outdir, a["Attendee #"])))
 
 def main():
     
-    # TODO: Get attendees filename from command-line
-    #sys.argv[1]
+    # When present get options from the command line
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "h:w:a:o:t:", 
+                      ["height=", "width=", "attendees=", "output=", "take="])
+    except getopt.GetoptError, err:
+        # print help information and exit:
+        print str(err)
+        usage()
+        sys.exit(-1)
+        
+    # Define the dimensions of the QRcodes required (here we give defaults)
+    (qrcodeWidth, qrcodeHeight) = (500,500)
+    # The directory into which we store the QRcodes (again, the default)
+    outdir = "qrcodes"
+    # The name of the CSV file from Eventbrite contain the list of attendees
+    attendeelist = None
+    # Number of attendees to take from the list (for testing)
+    takenum = None
     
-    # Define the dimensions of the QRcodes required
-    (qrcodeWidth, qrcodeHeight) = (250,100)
+    for o, a in opts:
+        if o == ("-h", "--height"):
+            qrcodeHeight = a
+        elif o in ("-w", "--width"):
+            qrcodeWidth = a
+        elif o in ("-a", "--attendees"):
+            attendeelist = a
+        elif o in ("-o", "--output"):
+            outdir = a
+        elif o in ("-t", "--take"):
+            takenum = a
+        else:
+            assert False, "unhandled option"
+            
     
     # Open the CSV file
-    attendeeReader = csv.DictReader(open('Attendees-1371019757.csv', 'rb'))
+    try:
+        attendeeReader = csv.DictReader(open(attendeelist, 'rb'))
+    except err:
+        print str(err)
     
-    # For testing just grab the first 5 attendees
-    map(gen_qrcoode, [a for itertools.islice(attendeeReader,5)])
+    # Before running the process, ensure that the output directory exists
+    if not os.path.exists(outdir):
+        os.mkdir(outdir)
+    
+    # For testing just grab the first takenum attendees
+    if takenum is not None:
+        for a in itertools.islice(attendeeReader,int(takenum)):
+            gen_qrcode(a,qrcodeHeight,qrcodeWidth,outdir)
+    else:
+        for a in attendeeReader:
+            gen_qrcode(a,qrcodeHeight,qrcodeWidth,outdir)
 
 if __name__ == "__main__" :
     main()
