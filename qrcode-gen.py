@@ -51,21 +51,29 @@ def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
     j.add('url')
     j.url.value = a["Website"]
     j.add('x-kaddressbook-blogfeed')
-    j['x-kaddressbook-blogfeed'].value = a["Blog"]
+    j.x_kaddressbook_blogfeed.value = a["Blog"]
     # Tidy up twitter handle to ensure it always has an @ prefix
     j.add('x-twitter')
     teststr = a["Twitter handle"]
     myreg = re.compile( "^@.*" )
     if myreg.match(teststr) is None:
-        j['x-twitter'].value = "@%s" % teststr
+        j.x_twitter.value = "@%s" % teststr
     else:
-        j['x-twitter'].value = teststr
+        j.x_twitter.value = teststr
     
-    # Request a QRcode from the Google Charts API using the vCard data (Assume an encoding of UTF-8)
+    vCardTest = j.serialize()
+    print vCardTest
+    
+    # The following is a hack to fix a bug with the serialization of the org part
+    badOrgRegex = re.compile(r"^ORG:?P<colons>(.;)+$")
+    re.sub(r"^ORG:((.;)+)$", "ORG:"+re.sub(badOrgRegex.match(vCardTest.groups()[0])), vCardTest)
+    
+    # Request a QRcode from the Google Charts API using the vCard data
+    # (Assume an encoding of UTF-8)
     url = "https://chart.googleapis.com/chart"
     values = {'cht' : 'qr',
                 'chs' : '%sx%s'%(qrcodeWidth,qrcodeHeight),
-                'chl' : j.serialize(),
+                'chl' : vCardTest,
                 'choe' : 'UTF-8' }
     
     data = urllib.urlencode(values)
@@ -120,10 +128,7 @@ def main():
             
     
     # Open the CSV file
-    try:
-        attendeeReader = csv.DictReader(open(attendeelist, 'rb'))
-    except err:
-        print str(err)
+    attendeeReader = csv.DictReader(open(attendeelist, 'rb'))
     
     # Before running the process, ensure that the output directory exists
     if not os.path.exists(outdir):
