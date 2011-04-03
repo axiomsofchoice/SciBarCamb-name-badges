@@ -13,9 +13,41 @@ http://i306.photobucket.com/albums/nn247/quantum_flux/Animations/Evolution%20and
 
 """
 
-import os, sys
+import os, sys, getopt
 import Image, ImageSequence, ImageChops, ImageDraw
 import itertools
+import random
+
+def permutegrill(sd, numframes):
+    """Applies a low-level pixel 
+    """
+    
+    (xpixels, ypixels) = img.size
+    
+    # get data from old image (as you already did)
+    data = list(oldimg.getdata())
+    assert len(data) == (xpixels * ypixels)
+    
+    # The permutated image data will be accumulated here
+    datanew = []
+    
+    # create empty new image of appropriate format
+    newimg = Image.new("RGB", (xpixels, ypixels))
+    
+    # Reseeding each time should ensure that the same seed results in the same
+    # permutation
+    random.seed(sd)
+    for i in range((xpixels * ypixels),ypixels):
+        # Return a random shift between 0 and 7 pixels
+        shiftamount = random.randrange(0, 100, 1) % numframes
+        if shiftamount:
+        else:
+            datanew.extend(itertools.islice(data[xpixels]))
+        
+    
+    # insert saved data into the image
+    newimg.putdata(datanew)
+    
 
 def buildGridAndMasks(numframes, xsize, ysize):
     """ This helper function builds a grid viewer image and a collection of
@@ -28,7 +60,7 @@ def buildGridAndMasks(numframes, xsize, ysize):
     # Draw the lines of the grid
     for i in range(xsize / numframes):
         maskDraw.rectangle([ (i*numframes, 0), 
-                            (i*numframes + (resultNumFrames-2), ysize)],
+                            (i*numframes + (numframes-2), ysize)],
                             fill=(0,0,0))
     del maskDraw
     
@@ -43,7 +75,7 @@ def buildGridAndMasks(numframes, xsize, ysize):
         # Draw the lines of the mask
         for i in range(xsize / numframes):
             maskDraw.rectangle([ (i*numframes - fi, 0), 
-                            (i*numframes - fi + (resultNumFrames-2), ysize) ],
+                            (i*numframes - fi + (numframes-2), ysize) ],
                             fill=(0,0,0,256))
         del maskDraw
         
@@ -93,7 +125,6 @@ def main():
                     "mitosis": Image.open(os.path.join(anidir,"mitosis.gif")),
                     "drift": Image.open(os.path.join(anidir,"Pangea_animation_03.gif")) }
     
-    exit(0)
     for (n, a) in animations.iteritems():
         print "%s has %s\n" % (n, a.info)
     
@@ -119,8 +150,8 @@ def main():
     map( lambda (a,b) : a.save(os.path.join(outdir,"foo-"+str(b)+".png")), zip (intermediates, range(len(intermediates))))
     compositeIm = reduce( lambda img1, img2 : ImageChops.add(img1, img2), intermediates)
     
-    # Save the grid image and final composite image
-    grid.save(os.path.join(outdir,"grid-1.PNG"), dpi=(175, 175))
+    # Save the grid image (flip 180 for convenience) and final composite image
+    grid.transpose(method=ROTATE_180).save(os.path.join(outdir,"grid-1.PNG"), dpi=(175, 175))
     compositeIm.save(os.path.join(outdir,"moire-1.PNG"), dpi=(175, 175))
 
 if __name__ == "__main__" :
