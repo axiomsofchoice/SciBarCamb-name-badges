@@ -41,39 +41,51 @@ def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
     j.n.value = vobject.vcard.Name( family=a["Last Name"], given=a["First Name"] )
     j.add('fn')
     j.fn.value ='%s %s' % (a["First Name"], a["Last Name"])
-    j.add('email')
-    j.email.value = a["Email"]
-    j.email.type_param = 'INTERNET'
-    j.add('title')
-    j.title.value = a["Job Title"]
-    j.add('org')
-    j.org.value = a["Company"]
-    j.add('url')
-    j.url.value = a["Website"]
-    j.add('x-kaddressbook-blogfeed')
-    j.x_kaddressbook_blogfeed.value = a["Blog"]
-    # Tidy up twitter handle to ensure it always has an @ prefix
-    j.add('x-twitter')
+    if len(a["Email"]):
+        j.add('email')
+        j.email.value = a["Email"]
+        j.email.type_param = 'INTERNET'
+    if len(a["Job Title"]):
+        j.add('title')
+        j.title.value = a["Job Title"]
+    if len(a["Company"]):
+        j.add('org')
+        j.org.value = a["Company"]
+    if len(a["Website"]):
+        j.add('url')
+        j.url.value = a["Website"]
+    if len(a["Blog"]):
+        j.add('x-kaddressbook-blogfeed')
+        j.x_kaddressbook_blogfeed.value = a["Blog"]
+    # Tidy up twitter handle (if it exists) to ensure it always has an @ prefix
+    validtwitterhandleregex = re.compile( "^(?P<handleprefix>@)?(?P<handle>.+)" )
     teststr = a["Twitter handle"]
-    myreg = re.compile( "^@.*" )
-    if myreg.match(teststr) is None:
-        j.x_twitter.value = "@%s" % teststr
-    else:
-        j.x_twitter.value = teststr
+    if validtwitterhandleregex.match(teststr) is not None:
+        j.add('x-twitter')
+        if validtwitterhandleregex.match(teststr).group('handleprefix') is None:
+            j.x_twitter.value = "@%s" % teststr
+        else:
+            j.x_twitter.value = teststr
     
     vCardTest = j.serialize()
     print vCardTest
-    
     # The following is a hack to fix a bug with the serialization of the org part
-    badOrgRegex = re.compile(r"^ORG:?P<colons>(.;)+$")
-    re.sub(r"^ORG:((.;)+)$", "ORG:"+re.sub(badOrgRegex.match(vCardTest.groups()[0])), vCardTest)
+    vCardFixed = ''
+    if len(a["Company"]):
+        badOrgRegex = re.compile(r"ORG:(((\\)?.;)+(.)?)")
+        badOrg = badOrgRegex.findall(vCardTest)[0][0]
+        betterOrg = re.sub(r";", "", badOrg)
+        evenbetterOrg = re.sub(r"\\", "", betterOrg)
+        vCardFixed = re.sub(r"ORG:(((\\)?.;)+(.)?)", "ORG:%s" % evenbetterOrg, vCardTest)
+    else:
+        vCardFixed = vCardTest
     
     # Request a QRcode from the Google Charts API using the vCard data
     # (Assume an encoding of UTF-8)
     url = "https://chart.googleapis.com/chart"
     values = {'cht' : 'qr',
                 'chs' : '%sx%s'%(qrcodeWidth,qrcodeHeight),
-                'chl' : vCardTest,
+                'chl' : vCardFixed,
                 'choe' : 'UTF-8' }
     
     data = urllib.urlencode(values)
