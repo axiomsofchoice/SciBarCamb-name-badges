@@ -13,6 +13,7 @@ http://i306.photobucket.com/albums/nn247/quantum_flux/Animations/Evolution%20and
 
 """
 
+import os, sys
 import Image, ImageSequence, ImageChops, ImageDraw
 import itertools
 
@@ -54,24 +55,45 @@ def main():
     
     # When present get options from the command line
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "h:w:o:", 
-                      ["height=", "width=", "output="])
+        opts, args = getopt.getopt(sys.argv[1:], "h:w:o:f:", 
+                      ["height=", "width=", "output=", "frames="])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err)
         usage()
         sys.exit(-1)
     
-    # This gives the number of frames in the final animation
+    # This gives the number of frames required in the final animation
+    # (if the original doesn't have exactly this many it will be truncated/padded as appropriate)
     resultNumFrames = 8
+    # Place to output resulting image files
+    outdir = "composites"
+    # Directory where animation source files are held
+    anidir = "animations"
+    # Default size for the resulting composite image and grill
+    # (image will be fit, centred into this)
+    (qrcodeWidth, qrcodeHeight) = (500, 500)
+    
+    for o, a in opts:
+        if o == ("-h", "--height"):
+            qrcodeHeight = a
+        elif o in ("-w", "--width"):
+            qrcodeWidth = a
+        elif o in ("-o", "--output"):
+            outdir = a
+        elif o in ("-f", "--frames"):
+            resultNumFrames = a
+        else:
+            assert False, "unhandled option"
     
     # Get the animation file and determine it's size
-    animations = { "vortex": Image.open("Vortex-street-animation.gif"),
-                    "sn2": Image.open("SN2.gif"),
-                    "dna": Image.open("ADN_animation.gif"),
-                    "mitosis": Image.open("mitosis.gif") }
-                    "drift": Image.open("Pangea_animation_03.gif"),
+    animations = { "vortex": Image.open(os.path.join(anidir,"Vortex-street-animation.gif")),
+                    "sn2": Image.open(os.path.join(anidir,"SN2.gif")),
+                    "dna": Image.open(os.path.join(anidir,"ADN_animation.gif")),
+                    "mitosis": Image.open(os.path.join(anidir,"mitosis.gif")),
+                    "drift": Image.open(os.path.join(anidir,"Pangea_animation_03.gif")) }
     
+    exit(0)
     for (n, a) in animations.iteritems():
         print "%s has %s\n" % (n, a.info)
     
@@ -83,7 +105,7 @@ def main():
     sourceFrames = [frame.copy() for frame in rawSourceFrames[:resultNumFrames]]
     
     for (frame,i) in zip(sourceFrames, range(len(sourceFrames))):
-        frame.save("frame"+str(i)+".PNG")
+        frame.save(os.path.join(outdir,"frame"+str(i)+".PNG"))
     
     (grid,masks) = buildGridAndMasks(resultNumFrames, xsize, ysize)
     
@@ -94,12 +116,12 @@ def main():
     intermediates = map(lambda (image1, image2) : Image.composite(blankcanvas, image1, image2),
             zip(sourceFrames, masks) )
     # Save the intermediates (for debugging)
-    map( lambda (a,b) : a.save("foo-"+str(b)+".png"), zip (intermediates, range(len(intermediates))))
+    map( lambda (a,b) : a.save(os.path.join(outdir,"foo-"+str(b)+".png")), zip (intermediates, range(len(intermediates))))
     compositeIm = reduce( lambda img1, img2 : ImageChops.add(img1, img2), intermediates)
     
     # Save the grid image and final composite image
-    grid.save("grid-1.PNG", dpi=(175, 175))
-    compositeIm.save("moire-1.PNG", dpi=(175, 175))
+    grid.save(os.path.join(outdir,"grid-1.PNG"), dpi=(175, 175))
+    compositeIm.save(os.path.join(outdir,"moire-1.PNG"), dpi=(175, 175))
 
 if __name__ == "__main__" :
     main()
