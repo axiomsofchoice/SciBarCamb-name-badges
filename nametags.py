@@ -26,93 +26,72 @@ from reportlab.lib.units import inch, cm
 from reportlab.lib.utils import ImageReader
 #import moire
 
-def drawNameTag():
+def drawNameTag(c, SciBarCamb_logo, qrcodes, a, animationImage, animationCredit):
     """Draws a single nametag, relative to the current coordinate transformation
     """
-    pass
+    # The QRcode
+    qrcodeImage = ImageReader("%s.PNG" % (os.path.join(qrcodes, a["Attendee #"])))
+    c.drawImage(qrcodeImage, 100, 100)
+    # The SciBarCamb logo
+    c.drawImage(SciBarCamb_logo, 100, 500)
+    # Affiliation details
+    c.drawCentredString(150, 250, '%s %s' % (a["First Name"], a["Last Name"]))
+    c.drawCentredString(150, 225, a["Job Title"])
+    c.drawCentredString(150, 200, a["Company"])
+    c.drawCentredString(150, 175, a["Twitter handle"])
+    # The animated image
+    c.drawImage(animationImage, 100, 300)
+    # A credit for the animated gif
+    c.drawCentredString(150, 200, "Source: %s" % animationCredit)
+    # A tick box for the barstaff to tick after providing a free drink ;) 
+    c.rect(250, 225, 25, 25, stroke=1, fill=0)
+    # A surround box to help with cutting it out
+    c.rect(200, 225, 25, 25, stroke=1, fill=0)
 
-def drawPageOfNameTags():
+def drawPageOfNameTags(c, SciBarCamb_logo, qrcodeImages, attendees, animationImages, animationCredits):
     """Draw four name tags on a page"""
-    pass
+    assert len(attendees) == 4, "more attendees than expected"
+    
+    # All translations will be cumulative relative to the standard coordinate system
+    drawNameTag(c, SciBarCamb_logo, qrcodes, attendees[0], animationImages[0], animationCredits[1])
+    c.translate(1.5*inch, 0.0)
+    drawNameTag(c, SciBarCamb_logo, qrcodes, attendees[1], animationImages[1], animationCredits[1])
+    c.translate(0.0, 2.4*inch)
+    drawNameTag(c, SciBarCamb_logo, qrcodes, attendees[2], animationImages[2], animationCredits[2])
+    c.translate(-1.5*inch, 0.0)
+    drawNameTag(c, SciBarCamb_logo, qrcodes, attendees[3], animationImages[3], animationCredits[3])
+    
+    # Complete the page, ready to move on to the next one
+    c.showPage()
 
-def processAttendees():
+def processAttendees(attendeeReader,logos,qrcodes,outdir):
     """Takes the list of attendees, pads out to 100 as necessary, permutes the
     list and then groups into fours for compilation into a PDF.
+    
+    Also generates the moire images on the fly, for inclusion into the name tags
     """
-    # For testing just grab the first 5 attendees
-    for a in itertools.islice(attendeeReader,5):
+    # TODO: First generate the 100 images
+    animationImages = []
+    
+    # TODO: Pad out the list list of attendees to 100
+    
+    # TODO: Permute the list
+    
+    # TODO: Take items in fours and compile pages
+    
+    c = canvas.Canvas(os.path.join(outdir,"SciBarCamb-nametags.pdf"))
+    
+    for a in attendeeReader:
         print "Processing: %s %s" % (a["First Name"], a["Last Name"])
         
-        # Create a new vCard based on these values
-        j = vobject.vCard()
-        j.add('n')
-        j.n.value = vobject.vcard.Name( family=a["Last Name"], given=a["First Name"] )
-        j.add('fn')
-        j.fn.value ='%s %s' % (a["First Name"], a["Last Name"])
-        j.add('email')
-        j.email.value = a["Email"]
-        j.add('title')
-        j.email.value = a["Job Title"]
-        j.add('org')
-        j.email.value = a["Company"]
-        j.add('url')
-        j.email.value = a["Website"]
-        j.add('x-kaddressbook-blogfeed')
-        j.email.value = a["Blog"]
-        # TODO: tidy up twitter handle to ensure it always has an @ prefix
-        j.add('x-twitter')
-        j.email.value = a["Twitter handle"]
-        j.email.type_param = 'INTERNET'
-        
-        # Request a QRcode from the Google Charts API using the vCard data (Assume an encoding of UTF-8)
-        url = "https://chart.googleapis.com/chart"
-        values = {'cht' : 'qr',
-                    'chs' : '%sx%s'%(qrcodeWidth,qrcodeHeight),
-                    'chl' : j.serialize(),
-                    'choe' : 'UTF-8' }
-        
-        data = urllib.urlencode(values)
-        req = urllib2.Request(url, data)
-        
-        f = urllib2.urlopen(req)
-        fcontents = f.read()
-        
-        # In order to turn this into an Image object we need to wrap the string
-        # data into StringIO
-        f2 = StringIO.StringIO(fcontents)
-        
-        # Read the file returned and parse as an image
-        myImg = Image.open(f2)
-        
-        myImg.save("%s-%s.PNG" % (a["First Name"], a["Last Name"]))
-        
-        im = ImageReader("%s-%s.PNG" % (a["First Name"], a["Last Name"]))
-        SciBarCamb_logo = ImageReader("SciBar_No shadow.jpg")
         aniIm = ImageReader("moire-1.PNG")
         
-        c = canvas.Canvas("%s-%s.pdf" % (a["First Name"], a["Last Name"]))
+        SciBarCamb_logo = ImageReader(os.path.join(logos, "SciBar_No shadow.jpg"))
         
-        # The QRcode
-        c.drawImage(im, 100, 100)
-        # The SciBarCamb logo
-        c.drawImage(SciBarCamb_logo, 100, 500)
-        # Affiliation details
-        c.drawCentredString(150, 250, '%s %s' % (a["First Name"], a["Last Name"]))
-        c.drawCentredString(150, 225, a["Job Title"])
-        c.drawCentredString(150, 200, a["Company"])
-        c.drawCentredString(150, 175, a["Twitter handle"])
-        # The animated image
-        c.drawImage(aniIm, 100, 300)
-        # A credit for the animated gif
-        #c.drawCentredString(150, 200, "Source: http://bit.ly/foo")
-        # A tick box for the barstaff to tick after providing a free drink ;) 
-        c.rect(250, 225, 25, 25, stroke=1, fill=0)
-        # A surround box to help with cutting it out
-        #c.rect(200, 225, 25, 25, stroke=1, fill=0)
+        drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, attendees, animationImages, animationCredits)
         
-        
-        c.showPage()
-        c.save()
+    # Complete the PDF document and save it
+    c.save()
 
 def main():
     
@@ -151,11 +130,11 @@ def main():
     # Open the CSV file
     attendeeReader = csv.DictReader(open(attendeelist, 'rb'))
     
-    exit(0)
     # Before running the process, ensure that the output directory exists
     if not os.path.exists(outdir):
         os.mkdir(outdir)
     
+    processAttendees(attendeeReader,logos,qrcodes,outdir)
 
 if __name__ == "__main__" :
     main()
