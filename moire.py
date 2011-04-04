@@ -131,7 +131,7 @@ def main():
     dupheight = 8
     
     for o, a in opts:
-        if o == ("-h", "--height"):
+        if o in ("-h", "--height"):
             qrcodeHeight = a
         elif o in ("-w", "--width"):
             qrcodeWidth = a

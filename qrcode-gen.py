@@ -125,7 +125,7 @@ def main():
     takenum = None
     
     for o, a in opts:
-        if o == ("-h", "--height"):
+        if o in ("-h", "--height"):
             qrcodeHeight = a
         elif o in ("-w", "--width"):
             qrcodeWidth = a
