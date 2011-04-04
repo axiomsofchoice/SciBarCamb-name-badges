@@ -25,7 +25,10 @@ def drawPageOfNameTags():
     """Draw four name tags on a page"""
     pass
 
-def processAttendees
+def processAttendees():
+    """Takes the list of attendees, pads out to 100 as necessary, permutes the
+    list and then groups into fours for compilation into a PDF.
+    """
     # For testing just grab the first 5 attendees
     for a in itertools.islice(attendeeReader,5):
         print "Processing: %s %s" % (a["First Name"], a["Last Name"])
@@ -103,6 +106,7 @@ def processAttendees
 
 def main():
     
+    exit(0)
     # When present get options from the command line
     try:
         opts, args = getopt.getopt(sys.argv[1:], "a:q:o:", 
