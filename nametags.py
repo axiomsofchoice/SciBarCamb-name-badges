@@ -4,11 +4,21 @@ Reads a CSV list of attendee, as provided by Eventbrite and gen
 Uses the following library
 http://www.reportlab.com/apis/reportlab/dev/
 
+Takes arguments:
+
+    attendees      - the csv file from Eventbrite containing the list of
+                     attendees
+    qrcodes        - the directory containing pre-generated QRcodes
+    output         - the directory into which the PDF file will go
+    logos          - the directory into which contains the SciBarCamb logos
+
+The compiled name tags will be rendered four-up onto an A4 page, output as a PDF
 """
 
 import csv
 import itertools
 import re, sys, os
+import getopt
 import Image
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
@@ -106,33 +116,34 @@ def processAttendees():
 
 def main():
     
-    exit(0)
     # When present get options from the command line
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "a:q:o:", 
-                      ["attendees=", "qrcodes=", "output="])
+        opts, args = getopt.getopt(sys.argv[1:], "a:q:o:l:", 
+                      ["attendees=", "qrcodes=", "output=", "logos="])
     except getopt.GetoptError, err:
         # print help information and exit:
         print str(err)
         usage()
         sys.exit(-1)
         
-    # Define the dimensions of the QRcodes required (here we give defaults)
-    (qrcodeWidth, qrcodeHeight) = (500,500)
     # The directory into which we store the QRcodes (again, the default)
     outdir = "nametags"
     # The name of the CSV file from Eventbrite contain the list of attendees
     attendeelist = None
-    # Number of attendees to take from the list (for testing)
-    takenum = None
+    # The directory containing pre-generated QRcodes
+    qrcodes = "qrcodes"
+    # The directory containing pre-generated QRcodes
+    logos = "logos"
     
     for o, a in opts:
         if o in ("-a", "--attendees"):
             attendeelist = a
+        elif o in ("-q", "--qrcodes"):
+            qrcodes = a
         elif o in ("-o", "--output"):
             outdir = a
-        elif o in ("-t", "--take"):
-            takenum = a
+        elif o in ("-l", "--logos"):
+            logos = a
         else:
             assert False, "unhandled option"
             
@@ -140,6 +151,7 @@ def main():
     # Open the CSV file
     attendeeReader = csv.DictReader(open(attendeelist, 'rb'))
     
+    exit(0)
     # Before running the process, ensure that the output directory exists
     if not os.path.exists(outdir):
         os.mkdir(outdir)
