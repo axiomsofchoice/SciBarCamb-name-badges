@@ -20,7 +20,7 @@ import itertools
 import random
 from collections import deque
 
-def permutegrill(sd, numframes, oldimg):
+def permutegrill(sd, numframes, oldimg, dupheight):
     """Applies a low-level pseudo-random pixel shifts to rows of pixels in the
     image
     """
@@ -41,13 +41,16 @@ def permutegrill(sd, numframes, oldimg):
     # permutation
     random.seed(sd)
     
-    for i in range(0,(xpixels * ypixels),xpixels):
+    # Return a random shift between 0 and 7 pixels, duplicating that for dupheight
+    # rows
+    shiftamounts = []
+    for i in range(ypixels/dupheight):
+        shiftamounts.extend([random.randrange(0, 100, 1) % numframes] * dupheight)
+    
+    for (rownum,shiftamount) in zip(range(0,(xpixels * ypixels),xpixels), shiftamounts[:ypixels]):
         
         # Obtain the original row of data
-        originalrow = deque(data[i:(i+xpixels)])
-        
-        # Return a random shift between 0 and 7 pixels
-        shiftamount = random.randrange(0, 100, 1) % numframes
+        originalrow = deque(data[rownum:(rownum+xpixels)])
         
         # Perform the actual shift
         originalrow.rotate(shiftamount)
@@ -63,7 +66,7 @@ def permutegrill(sd, numframes, oldimg):
     return newimg
     
 
-def buildGridAndMasks(numframes, xsize, ysize, permutationNo):
+def buildGridAndMasks(numframes, xsize, ysize, permutationNo, dupheight):
     """ This helper function builds a grid viewer image and a collection of
         frame mask images to be applied to the """
     
@@ -77,7 +80,7 @@ def buildGridAndMasks(numframes, xsize, ysize, permutationNo):
                             (i*numframes + (numframes-2), ysize)],
                             fill=(0,0,0))
     del maskDraw
-    completeMask = permutegrill(permutationNo,numframes,grid).copy()
+    completeMask = permutegrill(permutationNo,numframes,grid,dupheight).copy()
     
     # Next we make the masks, along the same principles, but shift
     # the position by one for each frame
@@ -94,7 +97,7 @@ def buildGridAndMasks(numframes, xsize, ysize, permutationNo):
                             fill=(0,0,0,256))
         del maskDraw
         
-        masks.append(permutegrill(permutationNo,numframes,mask).copy())
+        masks.append(permutegrill(permutationNo,numframes,mask,dupheight).copy())
     
     return (completeMask, masks)
     
@@ -124,6 +127,8 @@ def main():
     # Default size for the resulting composite image and grill
     # (image will be fit, centred into this)
     (qrcodeWidth, qrcodeHeight) = (500, 500)
+    # The height for the random grill strip
+    dupheight = 8
     
     for o, a in opts:
         if o == ("-h", "--height"):
@@ -160,7 +165,7 @@ def main():
     # TODO: update this each time
     permutationNo = 1
     
-    (grid,masks) = buildGridAndMasks(resultNumFrames, xsize, ysize, permutationNo)
+    (grid,masks) = buildGridAndMasks(resultNumFrames, xsize, ysize, permutationNo, dupheight)
     
     blankcanvas = Image.new("RGB", (xsize, ysize), (0,0,0))
     
@@ -172,8 +177,7 @@ def main():
     map( lambda (a,b) : a.save(os.path.join(outdir,"foo-"+str(b)+".png")), zip (intermediates, range(len(intermediates))))
     compositeIm = reduce( lambda img1, img2 : ImageChops.add(img1, img2), intermediates)
     
-    # Save the grid image (flip 180 for convenience) and final composite image
-    #grid.transpose(method='ROTATE_180').save(os.path.join(outdir,"grid-1.PNG"), dpi=(175, 175))
+    # Save the grid image and final composite image
     grid.save(os.path.join(outdir,"grid-1.PNG"), dpi=(175, 175))
     compositeIm.save(os.path.join(outdir,"moire-1.PNG"), dpi=(175, 175))
 

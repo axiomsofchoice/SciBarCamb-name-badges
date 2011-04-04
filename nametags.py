@@ -7,6 +7,8 @@ import vobject
 import StringIO
 import Image
 from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.units import inch, cm
 from reportlab.lib.utils import ImageReader
 #import moire
 
@@ -20,7 +22,7 @@ from reportlab.lib.utils import ImageReader
 #sys.argv[1]
 
 # Open the CSV file
-attendeeReader = csv.DictReader(open('Attendees-1371019757.csv', 'rb'))
+attendeeReader = csv.DictReader(open(os.path.join('attendees','Attendees-1371019757.csv'), 'rb'))
 
 # Get the 
 
