@@ -10,6 +10,7 @@ http://www.bluffton.edu/~bergerd/classes/cem221/sn-e/SN2.gif
 http://upload.wikimedia.org/wikipedia/commons/8/81/ADN_animation.gif
 http://www.sci.sdsu.edu/multimedia/mitosis/mitosis.gif
 http://i306.photobucket.com/albums/nn247/quantum_flux/Animations/Evolution%20and%20Cosmology/Pangea_animation_03.gif
+http://www.umass.edu/molvis/tutorials/dna/an_dna.gif
 
 """
 
@@ -17,12 +18,14 @@ import os, sys, getopt
 import Image, ImageSequence, ImageChops, ImageDraw
 import itertools
 import random
+from collections import deque
 
-def permutegrill(sd, numframes):
-    """Applies a low-level pixel 
+def permutegrill(sd, numframes, oldimg):
+    """Applies a low-level pseudo-random pixel shifts to rows of pixels in the
+    image
     """
     
-    (xpixels, ypixels) = img.size
+    (xpixels, ypixels) = oldimg.size
     
     # get data from old image (as you already did)
     data = list(oldimg.getdata())
@@ -32,24 +35,35 @@ def permutegrill(sd, numframes):
     datanew = []
     
     # create empty new image of appropriate format
-    newimg = Image.new("RGB", (xpixels, ypixels))
+    newimg = oldimg
     
     # Reseeding each time should ensure that the same seed results in the same
     # permutation
     random.seed(sd)
-    for i in range((xpixels * ypixels),ypixels):
+    
+    for i in range(0,(xpixels * ypixels),xpixels):
+        
+        # Obtain the original row of data
+        originalrow = deque(data[i:(i+xpixels)])
+        
         # Return a random shift between 0 and 7 pixels
         shiftamount = random.randrange(0, 100, 1) % numframes
-        if shiftamount:
-        else:
-            datanew.extend(itertools.islice(data[xpixels]))
         
+        # Perform the actual shift
+        originalrow.rotate(shiftamount)
+        
+        assert len(list(originalrow)) == xpixels
+        datanew.extend(list(originalrow))
+    
+    assert len(datanew) == (xpixels * ypixels)
     
     # insert saved data into the image
     newimg.putdata(datanew)
     
+    return newimg
+    
 
-def buildGridAndMasks(numframes, xsize, ysize):
+def buildGridAndMasks(numframes, xsize, ysize, permutationNo):
     """ This helper function builds a grid viewer image and a collection of
         frame mask images to be applied to the """
     
@@ -63,6 +77,7 @@ def buildGridAndMasks(numframes, xsize, ysize):
                             (i*numframes + (numframes-2), ysize)],
                             fill=(0,0,0))
     del maskDraw
+    completeMask = permutegrill(permutationNo,numframes,grid).copy()
     
     # Next we make the masks, along the same principles, but shift
     # the position by one for each frame
@@ -79,11 +94,15 @@ def buildGridAndMasks(numframes, xsize, ysize):
                             fill=(0,0,0,256))
         del maskDraw
         
-        masks.append(mask)
+        masks.append(permutegrill(permutationNo,numframes,mask).copy())
     
-    return (grid, masks)
+    return (completeMask, masks)
     
 def main():
+    
+    #test1 = Image.open(os.path.join("animations","code.gif"))
+    #result1 = permutegrill(1,8,test1).copy()
+    #result1.save(os.path.join("animations","code-new.gif"))
     
     # When present get options from the command line
     try:
@@ -138,7 +157,10 @@ def main():
     for (frame,i) in zip(sourceFrames, range(len(sourceFrames))):
         frame.save(os.path.join(outdir,"frame"+str(i)+".PNG"))
     
-    (grid,masks) = buildGridAndMasks(resultNumFrames, xsize, ysize)
+    # TODO: update this each time
+    permutationNo = 1
+    
+    (grid,masks) = buildGridAndMasks(resultNumFrames, xsize, ysize, permutationNo)
     
     blankcanvas = Image.new("RGB", (xsize, ysize), (0,0,0))
     
@@ -151,7 +173,8 @@ def main():
     compositeIm = reduce( lambda img1, img2 : ImageChops.add(img1, img2), intermediates)
     
     # Save the grid image (flip 180 for convenience) and final composite image
-    grid.transpose(method=ROTATE_180).save(os.path.join(outdir,"grid-1.PNG"), dpi=(175, 175))
+    #grid.transpose(method='ROTATE_180').save(os.path.join(outdir,"grid-1.PNG"), dpi=(175, 175))
+    grid.save(os.path.join(outdir,"grid-1.PNG"), dpi=(175, 175))
     compositeIm.save(os.path.join(outdir,"moire-1.PNG"), dpi=(175, 175))
 
 if __name__ == "__main__" :
