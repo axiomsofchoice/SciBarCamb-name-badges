@@ -100,12 +100,14 @@ def buildGridAndMasks(numframes, xsize, ysize, permutationNo, dupheight):
         masks.append(permutegrill(permutationNo,numframes,mask,dupheight).copy())
     
     return (completeMask, masks)
-    
+
+def get100images(attendeeList, animations):
+    """Runs the moire algorithm to get 100 images, 50 composites and 50 grids,
+    using the given list of 
+    """
+    pass
+
 def main():
-    
-    #test1 = Image.open(os.path.join("animations","code.gif"))
-    #result1 = permutegrill(1,8,test1).copy()
-    #result1.save(os.path.join("animations","code-new.gif"))
     
     # When present get options from the command line
     try:
@@ -142,12 +144,6 @@ def main():
         else:
             assert False, "unhandled option"
     
-    # Get the animation file and determine it's size
-    animations = { "vortex": Image.open(os.path.join(anidir,"Vortex-street-animation.gif")),
-                    "sn2": Image.open(os.path.join(anidir,"SN2.gif")),
-                    "dna": Image.open(os.path.join(anidir,"ADN_animation.gif")),
-                    "mitosis": Image.open(os.path.join(anidir,"mitosis.gif")),
-                    "drift": Image.open(os.path.join(anidir,"Pangea_animation_03.gif")) }
     
     for (n, a) in animations.iteritems():
         print "%s has %s\n" % (n, a.info)

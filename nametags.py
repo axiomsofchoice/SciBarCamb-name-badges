@@ -24,7 +24,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.units import inch, cm
 from reportlab.lib.utils import ImageReader
-#import moire
+import moire
 
 def drawNameTag(c, SciBarCamb_logo, qrcodes, a, animationImage, animationCredit):
     """Draws a single nametag, relative to the current coordinate transformation
@@ -70,18 +70,40 @@ def processAttendees(attendeeReader,logos,qrcodes,outdir):
     
     Also generates the moire images on the fly, for inclusion into the name tags
     """
-    # TODO: First generate the 100 images
-    animationImages = []
-    
-    # TODO: Pad out the list list of attendees to 100
-    
-    # TODO: Permute the list
-    
-    # TODO: Take items in fours and compile pages
-    
+    # The PDF file we will output
     c = canvas.Canvas(os.path.join(outdir,"SciBarCamb-nametags.pdf"))
     
-    for a in attendeeReader:
+    # Pad out the list list of attendees to 100
+    attendeeList = list(attendeeReader)
+    if len(attendeeList) < 100:
+        for i in range(100-len(attendeeList)):
+            attendeeList.append(dict({"Attendee #": str(i)}))
+    assert len(attendeeList) == 100, "expecting exactly 100 attendees"
+    
+    # Generate the 100 images, based on attendee number.
+    # These are the animations, and the places the were obtained
+    anidir = "animations"
+    animations = [ { "file": Image.open(os.path.join(anidir,"Vortex-street-animation.gif")),
+                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
+                    "shortsource" : "http://bit.ly/a5QbLl" } ,
+                   { "file": Image.open(os.path.join(anidir,"SN2.gif")),
+                    "source" : "http://www.bluffton.edu/~bergerd/classes/cem221/sn-e/SN2.gif",
+                    "shortsource" : "http://bit.ly/eLZYXJ" } ,
+                   { "file": Image.open(os.path.join(anidir,"ADN_animation.gif")),
+                    "source" : "http://upload.wikimedia.org/wikipedia/commons/8/81/ADN_animation.gif",
+                    "shortsource" : "http://bit.ly/3wx3wz" } ,
+                   { "file": Image.open(os.path.join(anidir,"mitosis.gif")),
+                    "source" : "http://www.sci.sdsu.edu/multimedia/mitosis/mitosis.gif",
+                    "shortsource" : "http://bit.ly/etm4Lg" } ,
+                   { "file": Image.open(os.path.join(anidir,"Pangea_animation_03.gif")),
+                    "source" : "http://i306.photobucket.com/albums/nn247/quantum_flux/Animations/Evolution%20and%20Cosmology/Pangea_animation_03.gif",
+                    "shortsource" : "http://bit.ly/hqhfQn" } ]
+    animationImages = moire.get100images(attendeeList, animations)
+    
+    exit(0)
+    
+    # TODO: Take items in fours and compile pages
+    for a in attendeeList:
         print "Processing: %s %s" % (a["First Name"], a["Last Name"])
         
         aniIm = ImageReader("moire-1.PNG")
