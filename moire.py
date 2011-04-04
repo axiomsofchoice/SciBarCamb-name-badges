@@ -101,11 +101,14 @@ def buildGridAndMasks(numframes, xsize, ysize, permutationNo, dupheight):
     
     return (completeMask, masks)
 
-def get100images(attendeeList, animations):
+def get100images(attendeeList, animations, anidir):
     """Runs the moire algorithm to get 100 images, 50 composites and 50 grids,
-    using the given list of 
+    using the given list of attendees
     """
-    pass
+    # TODO: run through the various permutations
+    for a in attendeeList:
+        myImg = animations[0]['file'].copy()
+        myImg.save("%s.PNG" % (os.path.join(anidir, a["Attendee #"])))
 
 def main():
     

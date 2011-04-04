@@ -24,42 +24,53 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.units import inch, cm
 from reportlab.lib.utils import ImageReader
+import StringIO
 import moire
 
-def drawNameTag(c, SciBarCamb_logo, qrcodes, a, animationImage, animationCredit):
+def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a):
     """Draws a single nametag, relative to the current coordinate transformation
+    leaving blanks where appropriate.
     """
+    if "First Name" in a and "Last Name" in a:
+        print "Processing: %s %s" % (a["First Name"], a["Last Name"])
+    else:
+        print "Processing a blank attendee"
+    
     # The QRcode
-    qrcodeImage = ImageReader("%s.PNG" % (os.path.join(qrcodes, a["Attendee #"])))
-    c.drawImage(qrcodeImage, 100, 100)
+    if os.path.exists("%s.PNG" % (os.path.join(qrcodes, a["Attendee #"]))):
+        qrcodeImage = ImageReader("%s.PNG" % (os.path.join(qrcodes, a["Attendee #"])))
+        c.drawImage(qrcodeImage, 100, 100)
     # The SciBarCamb logo
     c.drawImage(SciBarCamb_logo, 100, 500)
     # Affiliation details
-    c.drawCentredString(150, 250, '%s %s' % (a["First Name"], a["Last Name"]))
-    c.drawCentredString(150, 225, a["Job Title"])
-    c.drawCentredString(150, 200, a["Company"])
-    c.drawCentredString(150, 175, a["Twitter handle"])
-    # The animated image
+    if "First Name" in a and "Last Name" in a:
+        c.drawCentredString(150, 250, '%s %s' % (a["First Name"], a["Last Name"]))
+    if "Job Title" in a:
+        c.drawCentredString(150, 225, a["Job Title"])
+    if "Company" in a:
+        c.drawCentredString(150, 200, a["Company"])
+    if "Twitter handle" in a:
+        c.drawCentredString(150, 175, a["Twitter handle"])
+    # The animated image (a slight hack ;))
+    animationImage = ImageReader("%s.PNG" % os.path.join(anidir, a["Attendee #"]))
     c.drawImage(animationImage, 100, 300)
-    # A credit for the animated gif
-    c.drawCentredString(150, 200, "Source: %s" % animationCredit)
     # A tick box for the barstaff to tick after providing a free drink ;) 
     c.rect(250, 225, 25, 25, stroke=1, fill=0)
     # A surround box to help with cutting it out
     c.rect(200, 225, 25, 25, stroke=1, fill=0)
 
-def drawPageOfNameTags(c, SciBarCamb_logo, qrcodeImages, attendees, animationImages, animationCredits):
+def drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, anidir, attendees):
     """Draw four name tags on a page"""
     assert len(attendees) == 4, "more attendees than expected"
     
     # All translations will be cumulative relative to the standard coordinate system
-    drawNameTag(c, SciBarCamb_logo, qrcodes, attendees[0], animationImages[0], animationCredits[1])
+    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[0])
     c.translate(1.5*inch, 0.0)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, attendees[1], animationImages[1], animationCredits[1])
+    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[1])
     c.translate(0.0, 2.4*inch)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, attendees[2], animationImages[2], animationCredits[2])
+    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[2])
     c.translate(-1.5*inch, 0.0)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, attendees[3], animationImages[3], animationCredits[3])
+    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[3])
     
     # Complete the page, ready to move on to the next one
     c.showPage()
@@ -98,19 +109,14 @@ def processAttendees(attendeeReader,logos,qrcodes,outdir):
                    { "file": Image.open(os.path.join(anidir,"Pangea_animation_03.gif")),
                     "source" : "http://i306.photobucket.com/albums/nn247/quantum_flux/Animations/Evolution%20and%20Cosmology/Pangea_animation_03.gif",
                     "shortsource" : "http://bit.ly/hqhfQn" } ]
-    animationImages = moire.get100images(attendeeList, animations)
+                    
+    # This generates the images and puts them on the filesystem :(
+    moire.get100images(attendeeList, animations, anidir)
     
-    exit(0)
-    
-    # TODO: Take items in fours and compile pages
-    for a in attendeeList:
-        print "Processing: %s %s" % (a["First Name"], a["Last Name"])
-        
-        aniIm = ImageReader("moire-1.PNG")
-        
-        SciBarCamb_logo = ImageReader(os.path.join(logos, "SciBar_No shadow.jpg"))
-        
-        drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, attendees, animationImages, animationCredits)
+    # Take items in fours and compile pages
+    for i in range(0, len(attendeeList), 4):
+        drawPageOfNameTags(c, ImageReader(os.path.join(logos, "SciBar_No shadow.jpg")),
+                            qrcodes, anidir, attendeeList[i:i+4])
         
     # Complete the PDF document and save it
     c.save()
