@@ -27,7 +27,7 @@ from reportlab.lib.utils import ImageReader
 import StringIO
 import moire
 
-def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a):
+def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a, permuationClasses):
     """Draws a single nametag, relative to the current coordinate transformation
     leaving blanks where appropriate.
     """
@@ -36,41 +36,56 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a):
     else:
         print "Processing a blank attendee"
     
+    # A surrounding box to help with cutting it out
+    c.rect(1.5*cm, 2.0*cm, 8.0*cm, 11.0*cm, stroke=1, fill=0)
     # The QRcode
+    c.saveState()
+    c.translate(6.5*cm, 6.5*cm)
+    c.scale(0.15,0.15)
     if os.path.exists("%s.PNG" % (os.path.join(qrcodes, a["Attendee #"]))):
         qrcodeImage = ImageReader("%s.PNG" % (os.path.join(qrcodes, a["Attendee #"])))
-        c.drawImage(qrcodeImage, 100, 100)
+        c.drawImage(qrcodeImage, 0.0*cm, 0.0*cm)
+    c.restoreState()
     # The SciBarCamb logo
-    c.drawImage(SciBarCamb_logo, 100, 500)
-    # Affiliation details
-    if "First Name" in a and "Last Name" in a:
-        c.drawCentredString(150, 250, '%s %s' % (a["First Name"], a["Last Name"]))
-    if "Job Title" in a:
-        c.drawCentredString(150, 225, a["Job Title"])
-    if "Company" in a:
-        c.drawCentredString(150, 200, a["Company"])
-    if "Twitter handle" in a:
-        c.drawCentredString(150, 175, a["Twitter handle"])
-    # The animated image (a slight hack ;))
+    c.saveState()
+    c.translate(1.75*cm, 11.0*cm)
+    c.scale(0.12,0.12)
+    c.drawImage(SciBarCamb_logo, 0.0*cm, 0.0*cm)
+    c.restoreState()
+    # A box around the composite image for registering it 
+    #c.rect(250, 225, 25, 25, stroke=1, fill=0)
+    c.saveState()
+    c.translate(1.75*cm, 2.25*cm)
+    c.scale(0.425,0.425)
     animationImage = ImageReader("%s.PNG" % os.path.join(anidir, a["Attendee #"]))
-    c.drawImage(animationImage, 100, 300)
-    # A tick box for the barstaff to tick after providing a free drink ;) 
-    c.rect(250, 225, 25, 25, stroke=1, fill=0)
-    # A surround box to help with cutting it out
-    c.rect(200, 225, 25, 25, stroke=1, fill=0)
+    c.drawImage(animationImage, 0.0*cm, 0.0*cm)
+    c.restoreState()
+    # Affiliation details
+    c.setFont("Courier-BoldOblique", 14)
+    if "First Name" in a and "Last Name" in a:
+        c.drawCentredString(5.5*cm, 10.0*cm, '%s %s' % (a["First Name"], a["Last Name"]))
+    c.setFont("Courier-BoldOblique", 9)
+    if "Job Title" in a:
+        c.drawString(1.5*cm, 8.0*cm, a["Job Title"])
+    if "Company" in a:
+        c.drawString(1.5*cm, 7.0*cm, a["Company"])
+    if "Twitter handle" in a:
+        c.drawString(1.5*cm, 6.0*cm, a["Twitter handle"])
+    c.setFont("Courier-BoldOblique", 5)
+    c.drawString(8.5*cm, 6.25*cm, str(permuationClasses[a["Attendee #"]]))
 
-def drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, anidir, attendees):
+def drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, anidir, attendees, permuationClasses):
     """Draw four name tags on a page"""
     assert len(attendees) == 4, "more attendees than expected"
     
     # All translations will be cumulative relative to the standard coordinate system
-    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[0])
-    c.translate(1.5*inch, 0.0)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[1])
-    c.translate(0.0, 2.4*inch)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[2])
-    c.translate(-1.5*inch, 0.0)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[3])
+    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[0], permuationClasses)
+    c.translate(10.0*cm, 0.0)
+    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[1], permuationClasses)
+    c.translate(0.0, 15.0*cm)
+    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[2], permuationClasses)
+    c.translate(-10.0*cm, 0.0)
+    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[3], permuationClasses)
     
     # Complete the page, ready to move on to the next one
     c.showPage()
@@ -112,9 +127,9 @@ def processAttendees(attendeeReader,logos,qrcodes,outdir):
     animations = [ { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
                     "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
                     "shortsource" : "http://bit.ly/a5QbLl" } ,
-                   { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
-                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
-                    "shortsource" : "http://bit.ly/a5QbLl" } ,
+                   { "file": os.path.join(anidir,"an_dna.gif"),
+                    "source" : "",
+                    "shortsource" : "" } ,
                    { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
                     "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
                     "shortsource" : "http://bit.ly/a5QbLl" } ,
@@ -126,12 +141,12 @@ def processAttendees(attendeeReader,logos,qrcodes,outdir):
                     "shortsource" : "http://bit.ly/a5QbLl" } ]
                     
     # This generates the images and puts them on the filesystem :(
-    moire.get100images(attendeeList, animations, anidir)
+    permuationClasses = moire.get100images(attendeeList, animations, anidir)
     
     # Take items in fours and compile pages
     for i in range(0, len(attendeeList), 4):
         drawPageOfNameTags(c, ImageReader(os.path.join(logos, "SciBar_No shadow.jpg")),
-                            qrcodes, anidir, attendeeList[i:i+4])
+                            qrcodes, anidir, attendeeList[i:i+4], permuationClasses)
         
     # Complete the PDF document and save it
     c.save()

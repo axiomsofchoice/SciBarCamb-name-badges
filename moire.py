@@ -156,18 +156,23 @@ def get100images(attendeeList, animations, anidir):
     
     # Run through the various permutations :)
     # Pair up people
-    
+    permuationClasses = dict()
     pplpairs = zip(attendeeList[:50],attendeeList[50:])
     for igrp in range(0, len(pplpairs), 10):
         thisani = animations[igrp/10]["file"]
         pplpairsgrp = pplpairs[igrp:igrp+10]
         for permutationNo in range(len(pplpairsgrp)):
             (a,b) = pplpairsgrp[permutationNo]
-            (grid,comp) = doOneAnimationPermutation(permutationNo, thisani,
-                    compositeWidth, compositeHeight, resultNumFrames, dupheight)
+            #(grid,comp) = doOneAnimationPermutation(permutationNo, thisani,
+            #        compositeWidth, compositeHeight, resultNumFrames, dupheight)
             
-            grid.save("%s.PNG" % (os.path.join(anidir, a["Attendee #"])), dpi=(175, 175))
-            comp.save("%s.PNG" % (os.path.join(anidir, b["Attendee #"])), dpi=(175, 175))
+            #grid.save("%s.PNG" % (os.path.join(anidir, a["Attendee #"])), dpi=(175, 175))
+            #comp.save("%s.PNG" % (os.path.join(anidir, b["Attendee #"])), dpi=(175, 175))
+            
+            permuationClasses[a["Attendee #"]] = permutationNo
+            permuationClasses[b["Attendee #"]] = permutationNo
+            
+    return permuationClasses
 
 def main():
     
