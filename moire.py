@@ -46,6 +46,9 @@ def permutegrill(sd, numframes, oldimg, dupheight):
     shiftamounts = []
     for i in range(ypixels/dupheight):
         shiftamounts.extend([random.randrange(0, 100, 1) % numframes] * dupheight)
+    # Need to add these row at the bottom
+    if (ypixels % dupheight):
+        shiftamounts.extend([random.randrange(0, 100, 1) % numframes] * (ypixels % dupheight))
     
     for (rownum,shiftamount) in zip(range(0,(xpixels * ypixels),xpixels), shiftamounts[:ypixels]):
         
@@ -58,7 +61,7 @@ def permutegrill(sd, numframes, oldimg, dupheight):
         assert len(list(originalrow)) == xpixels
         datanew.extend(list(originalrow))
     
-    assert len(datanew) == (xpixels * ypixels)
+    assert len(datanew) == (xpixels * ypixels), "Found: %s %s"% (len(datanew), (xpixels * ypixels))
     
     # insert saved data into the image
     newimg.putdata(datanew)
@@ -101,14 +104,70 @@ def buildGridAndMasks(numframes, xsize, ysize, permutationNo, dupheight):
     
     return (completeMask, masks)
 
+def doOneAnimationPermutation(permutationNo, ani, xsize, ysize, resultNumFrames, dupheight):
+    
+    im = Image.open(ani)
+    # Extract every resultNumFrames of the frames of the animation
+    rawSourceFrames = [frame.convert("RGB") for frame in ImageSequence.Iterator(im)]
+    sourceFrames = [frame.copy().resize((xsize, ysize), Image.ANTIALIAS) for frame in rawSourceFrames[:resultNumFrames]]
+    
+    # For testing
+    for (frame,i) in zip(sourceFrames, range(len(sourceFrames))):
+        frame.save(os.path.join("composites","frame"+str(i)+".PNG"))
+    
+    # Based on the permutation in use generate the grid and masks
+    (grid,masks) = buildGridAndMasks(resultNumFrames, xsize, ysize, permutationNo, dupheight)
+    
+    # This blank canvas is useful for compositing
+    blankcanvas = Image.new("RGB", (xsize, ysize), (0,0,0))
+    
+    # We will accumulate the results to a new image, rather than using the
+    # original animate gif
+    intermediates = map(lambda (image1, image2) : Image.composite(blankcanvas, image1, image2),
+            zip(sourceFrames, masks) )
+    # Save the intermediates (for debugging)
+    map( lambda (a,b) : a.save(os.path.join("composites","foo-"+str(b)+".png")), zip (intermediates, range(len(intermediates))))
+    compositeIm = reduce( lambda img1, img2 : ImageChops.add(img1, img2), intermediates)
+    
+    # Return the grid image and final composite image
+    return (grid,compositeIm)
+    
 def get100images(attendeeList, animations, anidir):
     """Runs the moire algorithm to get 100 images, 50 composites and 50 grids,
     using the given list of attendees
     """
-    # TODO: run through the various permutations
-    for a in attendeeList:
-        myImg = animations[0]['file'].copy()
-        myImg.save("%s.PNG" % (os.path.join(anidir, a["Attendee #"])))
+    
+    # This gives the number of frames required in the final animation
+    # (if the original doesn't have exactly this many it will be truncated/padded as appropriate)
+    resultNumFrames = 8
+    # Place to output resulting image files
+    outdir = "composites"
+    # Directory where animation source files are held
+    anidir = "animations"
+    # Default size for the resulting composite image and grill
+    # (image will be fit, centred into this)
+    (compositeWidth, compositeHeight) = (500, 250)
+    # The height for the random grill strip
+    dupheight = 8
+    
+    # Partition the attendees into 10 groups
+    # Split each group into two groups of five, one half have composite
+    assert len(attendeeList) == (len(animations)*2*10) , "expecting enough animations for the number of attendees"
+    
+    # Run through the various permutations :)
+    # Pair up people
+    
+    pplpairs = zip(attendeeList[:50],attendeeList[50:])
+    for igrp in range(0, len(pplpairs), 10):
+        thisani = animations[igrp/10]["file"]
+        pplpairsgrp = pplpairs[igrp:igrp+10]
+        for permutationNo in range(len(pplpairsgrp)):
+            (a,b) = pplpairsgrp[permutationNo]
+            (grid,comp) = doOneAnimationPermutation(permutationNo, thisani,
+                    compositeWidth, compositeHeight, resultNumFrames, dupheight)
+            
+            grid.save("%s.PNG" % (os.path.join(anidir, a["Attendee #"])), dpi=(175, 175))
+            comp.save("%s.PNG" % (os.path.join(anidir, b["Attendee #"])), dpi=(175, 175))
 
 def main():
     
@@ -131,15 +190,15 @@ def main():
     anidir = "animations"
     # Default size for the resulting composite image and grill
     # (image will be fit, centred into this)
-    (qrcodeWidth, qrcodeHeight) = (500, 500)
+    (compositeWidth, compositeHeight) = (500, 500)
     # The height for the random grill strip
     dupheight = 8
     
     for o, a in opts:
         if o in ("-h", "--height"):
-            qrcodeHeight = a
+            compositeHeight = a
         elif o in ("-w", "--width"):
-            qrcodeWidth = a
+            compositeWidth = a
         elif o in ("-o", "--output"):
             outdir = a
         elif o in ("-f", "--frames"):
@@ -147,38 +206,7 @@ def main():
         else:
             assert False, "unhandled option"
     
-    
-    for (n, a) in animations.iteritems():
-        print "%s has %s\n" % (n, a.info)
-    
-    im = animations["vortex"]
-    (xsize, ysize) = im.size
-    
-    # Extract every resultNumFrames of the frames of the animation
-    rawSourceFrames = [frame.convert("RGB") for frame in ImageSequence.Iterator(im)]
-    sourceFrames = [frame.copy() for frame in rawSourceFrames[:resultNumFrames]]
-    
-    for (frame,i) in zip(sourceFrames, range(len(sourceFrames))):
-        frame.save(os.path.join(outdir,"frame"+str(i)+".PNG"))
-    
-    # TODO: update this each time
-    permutationNo = 1
-    
-    (grid,masks) = buildGridAndMasks(resultNumFrames, xsize, ysize, permutationNo, dupheight)
-    
-    blankcanvas = Image.new("RGB", (xsize, ysize), (0,0,0))
-    
-    # We will accumulate the results to a new image, rather than using the
-    # original animate gif
-    intermediates = map(lambda (image1, image2) : Image.composite(blankcanvas, image1, image2),
-            zip(sourceFrames, masks) )
-    # Save the intermediates (for debugging)
-    map( lambda (a,b) : a.save(os.path.join(outdir,"foo-"+str(b)+".png")), zip (intermediates, range(len(intermediates))))
-    compositeIm = reduce( lambda img1, img2 : ImageChops.add(img1, img2), intermediates)
-    
-    # Save the grid image and final composite image
-    grid.save(os.path.join(outdir,"grid-1.PNG"), dpi=(175, 175))
-    compositeIm.save(os.path.join(outdir,"moire-1.PNG"), dpi=(175, 175))
+    #doOneAnimationPermutation(permutationNo = 1, composite, composite)
 
 if __name__ == "__main__" :
     main()

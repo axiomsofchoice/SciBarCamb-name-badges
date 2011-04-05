@@ -94,21 +94,36 @@ def processAttendees(attendeeReader,logos,qrcodes,outdir):
     # Generate the 100 images, based on attendee number.
     # These are the animations, and the places the were obtained
     anidir = "animations"
-    animations = [ { "file": Image.open(os.path.join(anidir,"Vortex-street-animation.gif")),
+#    animations = [ { "file": Image.open(os.path.join(anidir,"Vortex-street-animation.gif")),
+#                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
+#                    "shortsource" : "http://bit.ly/a5QbLl" } ,
+#                   { "file": Image.open(os.path.join(anidir,"SN2.gif")),
+#                    "source" : "http://www.bluffton.edu/~bergerd/classes/cem221/sn-e/SN2.gif",
+#                    "shortsource" : "http://bit.ly/eLZYXJ" } ,
+#                   { "file": Image.open(os.path.join(anidir,"ADN_animation.gif")),
+#                    "source" : "http://upload.wikimedia.org/wikipedia/commons/8/81/ADN_animation.gif",
+#                    "shortsource" : "http://bit.ly/3wx3wz" } ,
+#                   { "file": Image.open(os.path.join(anidir,"mitosis.gif")),
+#                    "source" : "http://www.sci.sdsu.edu/multimedia/mitosis/mitosis.gif",
+#                    "shortsource" : "http://bit.ly/etm4Lg" } ,
+#                   { "file": Image.open(os.path.join(anidir,"Pangea_animation_03.gif")),
+#                    "source" : "http://i306.photobucket.com/albums/nn247/quantum_flux/Animations/Evolution%20and%20Cosmology/Pangea_animation_03.gif",
+#                    "shortsource" : "http://bit.ly/hqhfQn" } ]
+    animations = [ { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
                     "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
                     "shortsource" : "http://bit.ly/a5QbLl" } ,
-                   { "file": Image.open(os.path.join(anidir,"SN2.gif")),
-                    "source" : "http://www.bluffton.edu/~bergerd/classes/cem221/sn-e/SN2.gif",
-                    "shortsource" : "http://bit.ly/eLZYXJ" } ,
-                   { "file": Image.open(os.path.join(anidir,"ADN_animation.gif")),
-                    "source" : "http://upload.wikimedia.org/wikipedia/commons/8/81/ADN_animation.gif",
-                    "shortsource" : "http://bit.ly/3wx3wz" } ,
-                   { "file": Image.open(os.path.join(anidir,"mitosis.gif")),
-                    "source" : "http://www.sci.sdsu.edu/multimedia/mitosis/mitosis.gif",
-                    "shortsource" : "http://bit.ly/etm4Lg" } ,
-                   { "file": Image.open(os.path.join(anidir,"Pangea_animation_03.gif")),
-                    "source" : "http://i306.photobucket.com/albums/nn247/quantum_flux/Animations/Evolution%20and%20Cosmology/Pangea_animation_03.gif",
-                    "shortsource" : "http://bit.ly/hqhfQn" } ]
+                   { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
+                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
+                    "shortsource" : "http://bit.ly/a5QbLl" } ,
+                   { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
+                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
+                    "shortsource" : "http://bit.ly/a5QbLl" } ,
+                   { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
+                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
+                    "shortsource" : "http://bit.ly/a5QbLl" } ,
+                   { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
+                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
+                    "shortsource" : "http://bit.ly/a5QbLl" } ]
                     
     # This generates the images and puts them on the filesystem :(
     moire.get100images(attendeeList, animations, anidir)
