@@ -70,11 +70,11 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a, permuationClasses):
         c.drawCentredString(5.5*cm, 10.0*cm, '%s %s' % (a["First Name"], a["Last Name"]))
     c.setFont("Courier-BoldOblique", 9)
     if "Job Title" in a:
-        c.drawString(1.75*cm, 8.5*cm, a["Job Title"])
+        c.drawString(1.75*cm, 8.75*cm, a["Job Title"])
     if "Company" in a:
-        c.drawString(1.75*cm, 7.5*cm, a["Company"])
+        c.drawString(1.75*cm, 7.75*cm, a["Company"])
     if "Twitter handle" in a:
-        c.drawString(1.75*cm, 6.5*cm, a["Twitter handle"])
+        c.drawString(1.75*cm, 6.75*cm, a["Twitter handle"])
     c.setFont("Courier-BoldOblique", 5)
     c.drawString(8.5*cm, 6.3*cm, str(permuationClasses[a["Attendee #"]]))
 
