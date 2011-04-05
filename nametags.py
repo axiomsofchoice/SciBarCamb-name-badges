@@ -39,14 +39,6 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a, permuationClasses):
     
     # A surrounding box to help with cutting it out
     c.rect(1.5*cm, 2.0*cm, 8.0*cm, 11.0*cm, stroke=1, fill=0)
-    # The QRcode
-    c.saveState()
-    c.translate(6.5*cm, 6.5*cm)
-    c.scale(0.15,0.15)
-    if os.path.exists("%s.PNG" % (os.path.join(qrcodes, a["Attendee #"]))):
-        qrcodeImage = ImageReader("%s.PNG" % (os.path.join(qrcodes, a["Attendee #"])))
-        c.drawImage(qrcodeImage, 0.0*cm, 0.0*cm)
-    c.restoreState()
     # The SciBarCamb logo
     c.saveState()
     c.translate(1.75*cm, 11.0*cm)
@@ -70,11 +62,27 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a, permuationClasses):
         c.drawCentredString(5.5*cm, 10.0*cm, '%s %s' % (a["First Name"], a["Last Name"]))
     c.setFont("Courier-BoldOblique", 9)
     if "Job Title" in a:
-        c.drawString(1.75*cm, 8.75*cm, a["Job Title"])
+        c.drawString(1.75*cm, 8.75*cm, a["Job Title"][:25])
+        c.drawString(1.75*cm, 8.5*cm, a["Job Title"][25:50])
     if "Company" in a:
-        c.drawString(1.75*cm, 7.75*cm, a["Company"])
+        c.drawString(1.75*cm, 7.75*cm, a["Company"][:25])
+        c.drawString(1.75*cm, 7.5*cm, a["Company"][25:50])
     if "Twitter handle" in a:
-        c.drawString(1.75*cm, 6.75*cm, a["Twitter handle"])
+        validtwitterhandleregex = re.compile( "^(?P<handleprefix>@)?(?P<handle>.+)" )
+        teststr = a["Twitter handle"]
+        if validtwitterhandleregex.match(teststr) is not None:
+            if validtwitterhandleregex.match(teststr).group('handleprefix') is None:
+                c.drawString(1.75*cm, 6.75*cm, "@%s" % teststr)
+            else:
+                c.drawString(1.75*cm, 6.75*cm, teststr)
+    # The QRcode
+    c.saveState()
+    c.translate(6.5*cm, 6.5*cm)
+    c.scale(0.15,0.15)
+    if os.path.exists("%s.PNG" % (os.path.join(qrcodes, a["Attendee #"]))):
+        qrcodeImage = ImageReader("%s.PNG" % (os.path.join(qrcodes, a["Attendee #"])))
+        c.drawImage(qrcodeImage, 0.0*cm, 0.0*cm)
+    c.restoreState()
     c.setFont("Courier-BoldOblique", 5)
     c.drawString(8.5*cm, 6.3*cm, str(permuationClasses[a["Attendee #"]]))
 
