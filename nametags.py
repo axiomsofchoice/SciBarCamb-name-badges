@@ -24,6 +24,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.lib.units import inch, cm
 from reportlab.lib.utils import ImageReader
+from reportlab.lib.colors import black
 import StringIO
 import moire
 
@@ -53,7 +54,10 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a, permuationClasses):
     c.drawImage(SciBarCamb_logo, 0.0*cm, 0.0*cm)
     c.restoreState()
     # A box around the composite image for registering it 
-    #c.rect(250, 225, 25, 25, stroke=1, fill=0)
+    c.saveState()
+    c.setFillColor(black)
+    c.rect(1.6*cm, 2.125*cm, 7.825*cm, 4.0*cm, stroke=1, fill=1)
+    c.restoreState()
     c.saveState()
     c.translate(1.75*cm, 2.25*cm)
     c.scale(0.425,0.425)
@@ -66,13 +70,13 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a, permuationClasses):
         c.drawCentredString(5.5*cm, 10.0*cm, '%s %s' % (a["First Name"], a["Last Name"]))
     c.setFont("Courier-BoldOblique", 9)
     if "Job Title" in a:
-        c.drawString(1.5*cm, 8.0*cm, a["Job Title"])
+        c.drawString(1.75*cm, 8.5*cm, a["Job Title"])
     if "Company" in a:
-        c.drawString(1.5*cm, 7.0*cm, a["Company"])
+        c.drawString(1.75*cm, 7.5*cm, a["Company"])
     if "Twitter handle" in a:
-        c.drawString(1.5*cm, 6.0*cm, a["Twitter handle"])
+        c.drawString(1.75*cm, 6.5*cm, a["Twitter handle"])
     c.setFont("Courier-BoldOblique", 5)
-    c.drawString(8.5*cm, 6.25*cm, str(permuationClasses[a["Attendee #"]]))
+    c.drawString(8.5*cm, 6.3*cm, str(permuationClasses[a["Attendee #"]]))
 
 def drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, anidir, attendees, permuationClasses):
     """Draw four name tags on a page"""
