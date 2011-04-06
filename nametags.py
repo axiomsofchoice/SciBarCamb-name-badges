@@ -133,24 +133,33 @@ def processAttendees(attendeeReader,logos,qrcodes,outdir):
 #                   { "file": Image.open(os.path.join(anidir,"mitosis.gif")),
 #                    "source" : "http://www.sci.sdsu.edu/multimedia/mitosis/mitosis.gif",
 #                    "shortsource" : "http://bit.ly/etm4Lg" } ,
+#                   { "file": os.path.join(anidir,"pangena2.gif"),
+#                    "source" : "http://upload.wikimedia.org/wikipedia/commons/8/8e/Pangea_animation_03.gif",
+#                    "shortsource" : "" } ,
 #                   { "file": Image.open(os.path.join(anidir,"Pangea_animation_03.gif")),
-#                    "source" : "http://i306.photobucket.com/albums/nn247/quantum_flux/Animations/Evolution%20and%20Cosmology/Pangea_animation_03.gif",
+#                    "source" : "http://upload.wikimedia.org/wikipedia/commons/8/8e/Pangea_animation_03.gif",
 #                    "shortsource" : "http://bit.ly/hqhfQn" } ]
+# A useful tool for removing frames: http://www.blibs.com/editor/
+# A useful tool for fixing animated gifs with transparency: http://www.online-image-editor.com/
+# http://webpages.ursinus.edu/mtakats/gifcat/orbit.gif
     animations = [ { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
                     "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
-                    "shortsource" : "http://bit.ly/a5QbLl" } ,
-                   { "file": os.path.join(anidir,"an_dna.gif"),
-                    "source" : "",
                     "shortsource" : "" } ,
-                   { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
-                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
-                    "shortsource" : "http://bit.ly/a5QbLl" } ,
-                   { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
-                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
-                    "shortsource" : "http://bit.ly/a5QbLl" } ,
-                   { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
-                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
-                    "shortsource" : "http://bit.ly/a5QbLl" } ]
+                   { "file": os.path.join(anidir,"an_dna2.gif"),
+                    "source" : "http://upload.wikimedia.org/wikipedia/commons/7/77/An_dna.gif",
+                    "shortsource" : "" } ,
+#                   { "file": os.path.join(anidir,"dna_overlay.gif"),
+#                    "source" : "http://upload.wikimedia.org/wikipedia/commons/1/16/DNA_orbit_animated.gif",
+#                    "shortsource" : "http://bit.ly/a5QbLl" } ,
+                   { "file": os.path.join(anidir,"sn2_overlay.gif"),
+                    "source" : "http://www.bluffton.edu/~bergerd/classes/cem221/sn-e/SN2.gif",
+                    "shortsource" : "" } ,
+                   { "file": os.path.join(anidir,"CO2.gif"),
+                    "source" : "http://www2.ess.ucla.edu/~schauble/MoleculeHTML/CO2_html/CO2_PIu.gif",
+                    "shortsource" : "" } ,
+                   { "file": os.path.join(anidir,"mitosis-2.gif"),
+                    "source" : "http://www.sci.sdsu.edu/multimedia/mitosis/mitosis.gif",
+                    "shortsource" : "" } ]
                     
     # This generates the images and puts them on the filesystem :(
     permuationClasses = moire.get100images(attendeeList, animations, anidir)
