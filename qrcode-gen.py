@@ -29,12 +29,11 @@ import vobject
 import StringIO
 import Image
 
+badOrgRegex = re.compile(r"ORG:(((\\)?.;)+(.)?)")
 
-def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
+def formatAsvCard(a):
+    """Return the supplied record in vCard format.
     """
-    """
-    print "Processing: %s %s" % (a["First Name"], a["Last Name"])
-    
     # Create a new vCard based on these values
     j = vobject.vCard()
     j.add('n')
@@ -72,13 +71,21 @@ def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
     # The following is a hack to fix a bug with the serialization of the org part
     vCardFixed = ''
     if len(a["Company"]):
-        badOrgRegex = re.compile(r"ORG:(((\\)?.;)+(.)?)")
         badOrg = badOrgRegex.findall(vCardTest)[0][0]
         betterOrg = re.sub(r";", "", badOrg)
         evenbetterOrg = re.sub(r"\\", "", betterOrg)
         vCardFixed = re.sub(r"ORG:(((\\)?.;)+(.)?)", "ORG:%s" % evenbetterOrg, vCardTest)
     else:
         vCardFixed = vCardTest
+    return vCardFixed
+
+
+def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
+    """
+    """
+    print "Processing: %s %s" % (a["First Name"], a["Last Name"])
+    
+    vCardFixed = formatAsvCard(a)
     
     # Request a QRcode from the Google Charts API using the vCard data
     # (Assume an encoding of UTF-8)
@@ -102,6 +109,7 @@ def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
     myImg = Image.open(f2)
     
     myImg.save("%s.PNG" % (os.path.join(outdir, a["Attendee #"])))
+
 
 def main():
     
