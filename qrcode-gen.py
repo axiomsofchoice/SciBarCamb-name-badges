@@ -51,9 +51,9 @@ def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
     if len(a["Company"]):
         j.add('org')
         j.org.value = a["Company"]
-    if len(a["Website"]):
-        j.add('url')
-        j.url.value = a["Website"]
+    #if len(a["Website"]):
+    #    j.add('url')
+    #    j.url.value = a["Website"]
     if len(a["Blog"]):
         j.add('x-kaddressbook-blogfeed')
         j.x_kaddressbook_blogfeed.value = a["Blog"]
