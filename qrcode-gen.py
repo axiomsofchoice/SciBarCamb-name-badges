@@ -59,7 +59,7 @@ def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
         j.x_kaddressbook_blogfeed.value = a["Blog"]
     # Tidy up twitter handle (if it exists) to ensure it always has an @ prefix
     validtwitterhandleregex = re.compile( "^(?P<handleprefix>@)?(?P<handle>.+)" )
-    teststr = a["Twitter handle"]
+    teststr = a["Twitter"]
     if validtwitterhandleregex.match(teststr) is not None:
         j.add('x-twitter')
         if validtwitterhandleregex.match(teststr).group('handleprefix') is None:
