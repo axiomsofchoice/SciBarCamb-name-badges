@@ -14,7 +14,7 @@ Takes arguments:
     attendees      - the csv file from Eventbrite containing the list of
                      attendees
     output         - the directory into which the QRcode PNG image will go
-    takenum        - the number of attendees to grab from the list (for testing)
+    take           - the number of attendees to grab from the list (for testing)
     
 The PNG image files will be given names according to the "Attendee #" field.
 The images default to a size of 500x500 pixels.
