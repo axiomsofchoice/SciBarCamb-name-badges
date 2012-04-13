@@ -1,5 +1,5 @@
 """
-Reads a CSV list of attendee, as provided by Eventbrite and gen
+Reads a CSV list of attendees, as provided by Eventbrite and generates nametags.
 
 Uses the following library
 http://www.reportlab.com/apis/reportlab/dev/
@@ -26,9 +26,8 @@ from reportlab.lib.units import inch, cm
 from reportlab.lib.utils import ImageReader
 from reportlab.lib.colors import black
 import StringIO
-import moire
 
-def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a, permuationClasses):
+def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a):
     """Draws a single nametag, relative to the current coordinate transformation
     leaving blanks where appropriate.
     """
@@ -86,88 +85,43 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a, permuationClasses):
     c.setFont("Courier-BoldOblique", 5)
     c.drawString(8.5*cm, 6.3*cm, str(permuationClasses[a["Attendee #"]]))
 
-def drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, anidir, attendees, permuationClasses):
+def drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, tickettypes, attendees):
     """Draw four name tags on a page"""
     assert len(attendees) == 4, "more attendees than expected"
     
     # All translations will be cumulative relative to the standard coordinate system
-    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[0], permuationClasses)
+    drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[0])
     c.translate(10.0*cm, 0.0)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[1], permuationClasses)
+    drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[1])
     c.translate(0.0, 15.0*cm)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[2], permuationClasses)
+    drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[2])
     c.translate(-10.0*cm, 0.0)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, attendees[3], permuationClasses)
+    drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[3])
     
     # Complete the page, ready to move on to the next one
     c.showPage()
 
 def processAttendees(attendeeReader,logos,qrcodes,outdir):
-    """Takes the list of attendees, pads out to 100 as necessary, permutes the
-    list and then groups into fours for compilation into a PDF.
-    
-    Also generates the moire images on the fly, for inclusion into the name tags
+    """Takes the list of attendees and groups into fours for compilation into a
+    PDF.
     """
     # The PDF file we will output
     c = canvas.Canvas(os.path.join(outdir,"SciBarCamb-nametags.pdf"))
     
-    # Pad out the list list of attendees to 100
-    attendeeList = list(attendeeReader)
-    if len(attendeeList) < 100:
-        for i in range(100-len(attendeeList)):
-            attendeeList.append(dict({"Attendee #": str(i)}))
-    assert len(attendeeList) == 100, "expecting exactly 100 attendees"
-    
     # Generate the 100 images, based on attendee number.
-    # These are the animations, and the places the were obtained
-    anidir = "animations"
-#    animations = [ { "file": Image.open(os.path.join(anidir,"Vortex-street-animation.gif")),
-#                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
-#                    "shortsource" : "http://bit.ly/a5QbLl" } ,
-#                   { "file": Image.open(os.path.join(anidir,"SN2.gif")),
-#                    "source" : "http://www.bluffton.edu/~bergerd/classes/cem221/sn-e/SN2.gif",
-#                    "shortsource" : "http://bit.ly/eLZYXJ" } ,
-#                   { "file": Image.open(os.path.join(anidir,"ADN_animation.gif")),
-#                    "source" : "http://upload.wikimedia.org/wikipedia/commons/8/81/ADN_animation.gif",
-#                    "shortsource" : "http://bit.ly/3wx3wz" } ,
-#                   { "file": Image.open(os.path.join(anidir,"mitosis.gif")),
-#                    "source" : "http://www.sci.sdsu.edu/multimedia/mitosis/mitosis.gif",
-#                    "shortsource" : "http://bit.ly/etm4Lg" } ,
-#                   { "file": os.path.join(anidir,"pangena2.gif"),
-#                    "source" : "http://upload.wikimedia.org/wikipedia/commons/8/8e/Pangea_animation_03.gif",
-#                    "shortsource" : "" } ,
-#                   { "file": Image.open(os.path.join(anidir,"Pangea_animation_03.gif")),
-#                    "source" : "http://upload.wikimedia.org/wikipedia/commons/8/8e/Pangea_animation_03.gif",
-#                    "shortsource" : "http://bit.ly/hqhfQn" } ]
-# A useful tool for removing frames: http://www.blibs.com/editor/
-# A useful tool for fixing animated gifs with transparency: http://www.online-image-editor.com/
-# http://webpages.ursinus.edu/mtakats/gifcat/orbit.gif
-    animations = [ { "file": os.path.join(anidir,"Vortex-street-animation.gif"),
-                    "source" : "http://upload.wikimedia.org/wikipedia/commons/b/b4/Vortex-street-animation.gif",
-                    "shortsource" : "" } ,
-                   { "file": os.path.join(anidir,"an_dna2.gif"),
-                    "source" : "http://upload.wikimedia.org/wikipedia/commons/7/77/An_dna.gif",
-                    "shortsource" : "" } ,
-#                   { "file": os.path.join(anidir,"dna_overlay.gif"),
-#                    "source" : "http://upload.wikimedia.org/wikipedia/commons/1/16/DNA_orbit_animated.gif",
-#                    "shortsource" : "http://bit.ly/a5QbLl" } ,
-                   { "file": os.path.join(anidir,"sn2_overlay.gif"),
-                    "source" : "http://www.bluffton.edu/~bergerd/classes/cem221/sn-e/SN2.gif",
-                    "shortsource" : "" } ,
-                   { "file": os.path.join(anidir,"CO2.gif"),
-                    "source" : "http://www2.ess.ucla.edu/~schauble/MoleculeHTML/CO2_html/CO2_PIu.gif",
-                    "shortsource" : "" } ,
-                   { "file": os.path.join(anidir,"mitosis-2.gif"),
-                    "source" : "http://www.sci.sdsu.edu/multimedia/mitosis/mitosis.gif",
-                    "shortsource" : "" } ]
+    # These are the ticket type logos, and the places where they were obtained
+    ttdir = "tickettypes"
+    tickettypes = { "Electron": { "file": os.path.join(ttdir,"500px-Electric_field_point_lines_equipotentials.svg.png"),
+                    "source" : "http://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Electric_field_point_lines_equipotentials.svg/500px-Electric_field_point_lines_equipotentials.svg.png" } ,
+                    "Atom" : { "file": os.path.join(ttdir,"Stylised_Lithium_Atom.png"),
+                    "source" : "http://upload.wikimedia.org/wikipedia/commons/e/e2/Stylised_Lithium_Atom.png" } ,
+                    "Molecule" : { "file": os.path.join(ttdir,"Caffeine_molecule.png"),
+                    "source" : "http://upload.wikimedia.org/wikipedia/commons/6/65/Caffeine_molecule.png" } }
                     
-    # This generates the images and puts them on the filesystem :(
-    permuationClasses = moire.get100images(attendeeList, animations, anidir)
-    
     # Take items in fours and compile pages
     for i in range(0, len(attendeeList), 4):
         drawPageOfNameTags(c, ImageReader(os.path.join(logos, "SciBar_No shadow.jpg")),
-                            qrcodes, anidir, attendeeList[i:i+4], permuationClasses)
+                            qrcodes, tickettypes, attendeeList[i:i+4])
         
     # Complete the PDF document and save it
     c.save()
@@ -190,7 +144,7 @@ def main():
     attendeelist = None
     # The directory containing pre-generated QRcodes
     qrcodes = "qrcodes"
-    # The directory containing pre-generated QRcodes
+    # The directory containing SciBarCamb logos (not animations or ticket types)
     logos = "logos"
     
     for o, a in opts:
