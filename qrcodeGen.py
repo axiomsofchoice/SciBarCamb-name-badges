@@ -71,7 +71,8 @@ def formatAsvCard(a):
     vCardFixed = ''
     if len(a["Company"]):
         badOrg = badOrgRegex.findall(vCardTest)[0][0]
-        vCardFixed = re.sub(r"ORG:.*", "ORG:%s" % a["Company"], vCardTest)
+        # XXX: hacked to get carriage return
+        vCardFixed = re.sub(r"ORG:.*", r"ORG:%s\r" % a["Company"], vCardTest)
     else:
         vCardFixed = vCardTest
     # Remove trailing semi-colons in name parts

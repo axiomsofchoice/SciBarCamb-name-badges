@@ -3,6 +3,7 @@
 
 from unittest import TestCase
 from qrcodeGen import formatAsvCard
+import re
 
 class QRCodesGenTests(TestCase):
     """Tests the code that generates qrcode PNGs.
@@ -33,7 +34,7 @@ class QRCodesGenTests(TestCase):
                  "Company": "Digital Science",
                  "Blog": ""}
         vCardTest = formatAsvCard(a)
-        vCardExpected = r"""BEGIN:VCARD
+        vCardExpected = """BEGIN:VCARD
 VERSION:3.0
 EMAIL;TYPE=INTERNET:axiomsofchoice@gmail.com
 FN:Dan Hagon
@@ -42,4 +43,5 @@ ORG:Digital Science
 X-TWITTER:@axiomsofchoice
 END:VCARD
 """
+        vCardExpected = re.sub(r'(\r\n|\r|\n)', '\r\n', vCardExpected)
         self.assertEqual(vCardTest, vCardExpected)
