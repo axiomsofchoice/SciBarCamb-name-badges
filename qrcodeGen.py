@@ -29,7 +29,7 @@ import vobject
 import StringIO
 import Image
 
-badOrgRegex = re.compile(r"ORG:(((\\)?.;)+(.)?)")
+badOrgRegex = re.compile(r"ORG:(((\\)?.;)+.?)")
 
 def formatAsvCard(a):
     """Return the supplied record in vCard format.
@@ -67,16 +67,15 @@ def formatAsvCard(a):
             j.x_twitter.value = teststr
     
     vCardTest = j.serialize()
-    print vCardTest
     # The following is a hack to fix a bug with the serialization of the org part
     vCardFixed = ''
     if len(a["Company"]):
         badOrg = badOrgRegex.findall(vCardTest)[0][0]
-        betterOrg = re.sub(r";", "", badOrg)
-        evenbetterOrg = re.sub(r"\\", "", betterOrg)
-        vCardFixed = re.sub(r"ORG:(((\\)?.;)+(.)?)", "ORG:%s" % evenbetterOrg, vCardTest)
+        vCardFixed = re.sub(r"ORG:.*", "ORG:%s" % a["Company"], vCardTest)
     else:
         vCardFixed = vCardTest
+    # Remove trailing semi-colons in name parts
+    vCardFixed = re.sub(r';;;', "", vCardFixed)
     return vCardFixed
 
 
@@ -86,6 +85,7 @@ def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
     print "Processing: %s %s" % (a["First Name"], a["Last Name"])
     
     vCardFixed = formatAsvCard(a)
+    print vCardFixed
     
     # Request a QRcode from the Google Charts API using the vCard data
     # (Assume an encoding of UTF-8)
