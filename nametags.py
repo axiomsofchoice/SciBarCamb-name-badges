@@ -45,10 +45,10 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, a):
     c.drawImage(SciBarCamb_logo, 0.0*cm, 0.0*cm)
     c.restoreState()
     # A box around the composite image for registering it 
-    c.saveState()
-    c.setFillColor(black)
-    c.rect(1.6*cm, 2.125*cm, 7.825*cm, 4.0*cm, stroke=1, fill=1)
-    c.restoreState()
+    #c.saveState()
+    #c.setFillColor(black)
+    #c.rect(1.6*cm, 2.125*cm, 7.825*cm, 4.0*cm, stroke=1, fill=1)
+    #c.restoreState()
     c.saveState()
     c.translate(1.75*cm, 2.25*cm)
     c.scale(0.425,0.425)
@@ -92,8 +92,8 @@ def drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, tickettypes, attendees):
     c.translate(10.0*cm, 0.0)
     if len(attendees) > 1:
         drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[1])
-        c.translate(0.0, 15.0*cm)
         if len(attendees) > 2:
+        c.translate(0.0, 15.0*cm)
             drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[2])
             if len(attendees) > 3:
                 c.translate(-10.0*cm, 0.0)
