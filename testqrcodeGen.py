@@ -33,4 +33,13 @@ class QRCodesGenTests(TestCase):
                  "Company": "Digital Science",
                  "Blog": ""}
         vCardTest = formatAsvCard(a)
-        pass
+        vCardExpected = """
+BEGIN:VCARD
+VERSION:3.0
+EMAIL;TYPE=INTERNET:axiomsofchoice@gmail.com
+FN:Dan Hagon
+N:Hagon;Dan
+ORG:Digital Science
+X-TWITTER:@axiomsofchoice
+END:VCARD"""
+        self.assertEqual(vCardTest, vCardExpected, 'vCard formatting problem')
