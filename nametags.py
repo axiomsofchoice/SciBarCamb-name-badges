@@ -27,7 +27,7 @@ from reportlab.lib.utils import ImageReader
 from reportlab.lib.colors import black
 import StringIO
 
-def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a):
+def drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, a):
     """Draws a single nametag, relative to the current coordinate transformation
     leaving blanks where appropriate.
     """
@@ -52,8 +52,8 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a):
     c.saveState()
     c.translate(1.75*cm, 2.25*cm)
     c.scale(0.425,0.425)
-    animationImage = ImageReader("%s.PNG" % os.path.join(anidir, a["Attendee #"]))
-    c.drawImage(animationImage, 0.0*cm, 0.0*cm)
+    tickettypeImage = tickettypes[a["Ticket Type"]]["image"]
+    c.drawImage(tickettypeImage, 0.0*cm, 0.0*cm)
     c.restoreState()
     # Affiliation details
     c.setFont("Courier-BoldOblique", 14)
@@ -66,9 +66,9 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a):
     if "Company" in a:
         c.drawString(1.75*cm, 7.75*cm, a["Company"][:25])
         c.drawString(1.75*cm, 7.5*cm, a["Company"][25:50])
-    if "Twitter handle" in a:
+    if "Twitter" in a:
         validtwitterhandleregex = re.compile( "^(?P<handleprefix>@)?(?P<handle>.+)" )
-        teststr = a["Twitter handle"]
+        teststr = a["Twitter"]
         if validtwitterhandleregex.match(teststr) is not None:
             if validtwitterhandleregex.match(teststr).group('handleprefix') is None:
                 c.drawString(1.75*cm, 6.75*cm, "@%s" % teststr)
@@ -83,20 +83,23 @@ def drawNameTag(c, SciBarCamb_logo, qrcodes, anidir, a):
         c.drawImage(qrcodeImage, 0.0*cm, 0.0*cm)
     c.restoreState()
     c.setFont("Courier-BoldOblique", 5)
-    c.drawString(8.5*cm, 6.3*cm, str(permuationClasses[a["Attendee #"]]))
 
 def drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, tickettypes, attendees):
     """Draw four name tags on a page"""
-    assert len(attendees) == 4, "more attendees than expected"
     
     # All translations will be cumulative relative to the standard coordinate system
     drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[0])
     c.translate(10.0*cm, 0.0)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[1])
-    c.translate(0.0, 15.0*cm)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[2])
-    c.translate(-10.0*cm, 0.0)
-    drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[3])
+    if len(attendees) > 1:
+        drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[1])
+        c.translate(0.0, 15.0*cm)
+        if len(attendees) > 2:
+            drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[2])
+            if len(attendees) > 3:
+                c.translate(-10.0*cm, 0.0)
+                drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[3])
+                if len(attendees) > 4:
+                    raise Exception("more attendees than expected")
     
     # Complete the page, ready to move on to the next one
     c.showPage()
@@ -111,14 +114,15 @@ def processAttendees(attendeeReader,logos,qrcodes,outdir):
     # Generate the 100 images, based on attendee number.
     # These are the ticket type logos, and the places where they were obtained
     ttdir = "tickettypes"
-    tickettypes = { "Electron": { "file": os.path.join(ttdir,"500px-Electric_field_point_lines_equipotentials.svg.png"),
+    tickettypes = { "Electron": { "image": ImageReader(os.path.join(ttdir,"500px-Electric_field_point_lines_equipotentials.svg.png")),
                     "source" : "http://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Electric_field_point_lines_equipotentials.svg/500px-Electric_field_point_lines_equipotentials.svg.png" } ,
-                    "Atom" : { "file": os.path.join(ttdir,"Stylised_Lithium_Atom.png"),
+                    "Atom" : { "image": ImageReader(os.path.join(ttdir,"Stylised_Lithium_Atom.png")),
                     "source" : "http://upload.wikimedia.org/wikipedia/commons/e/e2/Stylised_Lithium_Atom.png" } ,
-                    "Molecule" : { "file": os.path.join(ttdir,"Caffeine_molecule.png"),
+                    "Molecule" : { "image": ImageReader(os.path.join(ttdir,"Caffeine_molecule.png")),
                     "source" : "http://upload.wikimedia.org/wikipedia/commons/6/65/Caffeine_molecule.png" } }
                     
     # Take items in fours and compile pages
+    attendeeList = list(attendeeReader)
     for i in range(0, len(attendeeList), 4):
         drawPageOfNameTags(c, ImageReader(os.path.join(logos, "SciBar_No shadow.jpg")),
                             qrcodes, tickettypes, attendeeList[i:i+4])
