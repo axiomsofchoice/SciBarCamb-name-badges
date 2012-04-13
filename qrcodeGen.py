@@ -100,7 +100,7 @@ def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
     
     data = urllib.urlencode(values)
     req = urllib2.Request(url, data)
-    print data
+    
     try:
         f = urllib2.urlopen(req)
     except urllib2.HTTPError:
