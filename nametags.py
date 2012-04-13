@@ -93,7 +93,7 @@ def drawPageOfNameTags(c, SciBarCamb_logo, qrcodes, tickettypes, attendees):
     if len(attendees) > 1:
         drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[1])
         if len(attendees) > 2:
-        c.translate(0.0, 15.0*cm)
+            c.translate(0.0, 15.0*cm)
             drawNameTag(c, SciBarCamb_logo, qrcodes, tickettypes, attendees[2])
             if len(attendees) > 3:
                 c.translate(-10.0*cm, 0.0)
