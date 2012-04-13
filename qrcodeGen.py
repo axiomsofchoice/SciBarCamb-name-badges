@@ -77,6 +77,8 @@ def formatAsvCard(a):
         vCardFixed = vCardTest
     # Remove trailing semi-colons in name parts
     vCardFixed = re.sub(r';;;', "", vCardFixed)
+    vCardFixed = re.sub(r'(\r\n|\r|\n)', '\r\n', vCardFixed)
+    
     return vCardFixed
 
 
@@ -98,8 +100,12 @@ def gen_qrcode(a, qrcodeHeight, qrcodeWidth, outdir):
     
     data = urllib.urlencode(values)
     req = urllib2.Request(url, data)
-    
-    f = urllib2.urlopen(req)
+    print data
+    try:
+        f = urllib2.urlopen(req)
+    except urllib2.HTTPError:
+        print "HTTP Error"
+        return
     fcontents = f.read()
     
     # In order to turn this into an Image object we need to wrap the string
